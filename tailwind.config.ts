@@ -154,6 +154,60 @@ export default {
 					'100%': {
 						transform: 'perspective(600px) rotateY(-105deg)'
 					}
+				},
+				'door-peek': {
+					'0%': {
+						transform: 'perspective(600px) rotateY(0)'
+					},
+					'100%': {
+						transform: 'perspective(600px) rotateY(-30deg)'
+					}
+				},
+				'static': {
+					'0%': {
+						opacity: '0.3',
+					},
+					'10%': {
+						opacity: '0.6',
+					},
+					'20%': {
+						opacity: '0.1',
+					},
+					'30%': {
+						opacity: '0.7',
+					},
+					'40%': {
+						opacity: '0.2',
+					},
+					'50%': {
+						opacity: '0.9',
+					},
+					'60%': {
+						opacity: '0.4',
+					},
+					'70%': {
+						opacity: '0.8',
+					},
+					'80%': {
+						opacity: '0.1',
+					},
+					'90%': {
+						opacity: '0.5',
+					},
+					'100%': {
+						opacity: '0.3',
+					},
+				},
+				'floating': {
+					'0%': {
+						transform: 'translateY(0px)'
+					},
+					'50%': {
+						transform: 'translateY(-10px)'
+					},
+					'100%': {
+						transform: 'translateY(0px)'
+					}
 				}
 			},
 			animation: {
@@ -162,7 +216,10 @@ export default {
 				'fade-in': 'fade-in 0.4s ease-out',
 				'glitch': 'glitch 0.3s ease-in-out infinite',
 				'door-hover': 'door-hover 0.2s forwards',
-				'door-open': 'door-open 0.8s forwards'
+				'door-open': 'door-open 0.8s forwards',
+				'door-peek': 'door-peek 0.4s forwards',
+				'static': 'static 0.15s infinite',
+				'floating': 'floating 3s ease-in-out infinite'
 			}
 		}
 	},

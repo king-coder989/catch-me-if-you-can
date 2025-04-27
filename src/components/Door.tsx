@@ -9,7 +9,7 @@ interface DoorProps {
 }
 
 const Door: React.FC<DoorProps> = ({ index }) => {
-  const { stageType, doorResults, selectDoor, isProcessing } = useGame();
+  const { stageType, doorResults, selectDoor, isProcessing, peekingDoor, aiPersonality } = useGame();
   const [isHovering, setIsHovering] = useState(false);
   
   const handleClick = () => {
@@ -31,6 +31,17 @@ const Door: React.FC<DoorProps> = ({ index }) => {
       );
     }
     
+    // Door is being peeked at
+    if (peekingDoor === index) {
+      // Show a "peek" animation - door cracks open slightly
+      return cn(
+        baseStyles,
+        "door animate-door-peek",
+        // AI might lie based on personality
+        aiPersonality === 'manipulator' && Math.random() < 0.3 ? "bg-red-500" : "bg-green-500"
+      );
+    }
+    
     // Door is closed
     return cn(
       baseStyles,
@@ -45,7 +56,19 @@ const Door: React.FC<DoorProps> = ({ index }) => {
   
   // Handle door content (what's shown when door opens)
   const getDoorContent = () => {
-    if (doorResults[index] === null) return null;
+    if (doorResults[index] === null) {
+      // If peeking, show a glimpse
+      if (peekingDoor === index) {
+        return (
+          <div className="door-content absolute inset-0 flex items-center justify-center opacity-70">
+            {aiPersonality === 'manipulator' && Math.random() < 0.3 
+              ? <X size={40} className="text-white animate-pulse" /> // AI might lie
+              : <Check size={40} className="text-white animate-pulse" />}
+          </div>
+        );
+      }
+      return null;
+    }
     
     return (
       <div className="door-content absolute inset-0 flex items-center justify-center">
@@ -77,7 +100,8 @@ const Door: React.FC<DoorProps> = ({ index }) => {
               size={48} 
               className={cn(
                 "text-white",
-                stageType === 'final' ? "opacity-70" : "opacity-100"
+                stageType === 'final' ? "opacity-70" : "opacity-100",
+                peekingDoor === index ? "animate-pulse" : ""
               )} 
             />
           ) : (
