@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,30 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Game specific colors
+				stage: {
+					early: {
+						bg: '#D3E4FD',
+						door: '#33C3F0',
+						text: '#222222',
+					},
+					middle: {
+						bg: '#E5DEFF',
+						door: '#9b87f5',
+						text: '#403E43',
+					},
+					late: {
+						bg: '#1A1F2C',
+						door: '#6E59A5',
+						text: '#FFFFFF',
+					},
+					final: {
+						bg: '#000000',
+						door: '#8B5CF6',
+						text: '#D946EF',
+					},
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +108,61 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'glitch': {
+					'0%': {
+						transform: 'translate(0)'
+					},
+					'20%': {
+						transform: 'translate(-5px, 5px)'
+					},
+					'40%': {
+						transform: 'translate(-5px, -5px)'
+					},
+					'60%': {
+						transform: 'translate(5px, 5px)'
+					},
+					'80%': {
+						transform: 'translate(5px, -5px)'
+					},
+					'100%': {
+						transform: 'translate(0)'
+					}
+				},
+				'door-hover': {
+					'0%': {
+						transform: 'scale(1)'
+					},
+					'100%': {
+						transform: 'scale(1.05)'
+					}
+				},
+				'door-open': {
+					'0%': {
+						transform: 'perspective(600px) rotateY(0)'
+					},
+					'100%': {
+						transform: 'perspective(600px) rotateY(-105deg)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.4s ease-out',
+				'glitch': 'glitch 0.3s ease-in-out infinite',
+				'door-hover': 'door-hover 0.2s forwards',
+				'door-open': 'door-open 0.8s forwards'
 			}
 		}
 	},
