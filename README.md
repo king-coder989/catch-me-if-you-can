@@ -1,157 +1,149 @@
-🧠 CATCH IF YOU CAN: A Psychological War Dressed as a Game
-⚔️ Tagline:
-"You thought you were playing a game.
-You were the game."
+# 🧠 CATCH IF YOU CAN  
+*A Psychological War Dressed as a Game*  
 
-🔥 Why We Created This
-Because fun isn’t real until you’re questioning your own mind.
-Because every click, every choice, every hesitation you make can — and should — be used against you.
-Because the world needs games that fight back.
+⚔️ **Tagline**:  
+"You thought you were playing a game.  
+You were the game."  
 
-We didn't come here to build another "tap tap" toy.
-We came to build the battlefield inside your own skull.
+---
 
-⚡ The Pain We Carried Into This
-Last hackathon? We played it safe.
+## 🔥 Why We Created This  
+Because fun isn’t real until you’re questioning your own mind.  
+Because every click, every choice, every hesitation you make can — and should — be used against you.  
+Because the world needs games that fight back.  
 
-Built something functional, technical, clean.
+We didn't come here to build another "tap tap" toy.  
+We came to build the battlefield inside your own skull.  
 
-Judges smiled. Then forgot it in 5 minutes.
+---
 
-✅ We realized:
+## ⚡ The Pain We Carried Into This  
+Last hackathon? We played it safe.  
 
-Nobody remembers safe.
-Only madness is unforgettable.
+Built something functional, technical, clean.  
 
-That's why Catch If You Can was born.
-Not to entertain.
-But to mark every player forever.
+Judges smiled. Then forgot it in 5 minutes.  
 
-🎮 What Is Catch If You Can?
-A 15-stage mind survival game.
+✅ **We realized**:  
 
-Choose between 3 doors.
+Nobody remembers safe.  
+Only madness is unforgettable.  
 
-Sounds easy, right?
+That's why Catch If You Can was born.  
+Not to entertain.  
+But to mark every player forever.  
 
-Except...
+---
 
-The AI evolves.
+## 🎮 What Is Catch If You Can?  
+A 15-stage mind survival game.  
 
-It learns you.
+Choose between 3 doors.  
 
-It gaslights you.
+Sounds easy, right?  
 
-It mocks you.
+**Except...**  
 
-It breaks you.
+The AI evolves.  
 
-You aren't fighting doors.
-You're fighting yourself — and losing.
+It learns you.  
 
-🛠️ Our Tech Stack (and Weapons)
-bash
-Copy
-Edit
-[ React | Vite | Lovable.dev | Groq LPU API | Monad Testnet | Vercel | TailwindCSS ]
-"Simple tools, sharpened to a psychological knife."
+It gaslights you.  
 
-🚀 How It Works (Barebones)
-You click.
+It mocks you.  
 
-Groq AI watches.
+It breaks you.  
 
-Groq AI lies.
+You aren't fighting doors.  
+You're fighting yourself — and losing.  
 
-You lose trust.
+---
 
-Monad records your fall... forever on blockchain.
+## 🛠️ Our Tech Stack (and Weapons)  
+`React | Vite | Lovable.dev | Groq LPU API | Monad Testnet | Vercel | TailwindCSS`  
 
-Not just a game.
-An on-chain memory of your defeat.
+*"Simple tools, sharpened to a psychological knife."*  
 
-💀 Why Judges Will Care
-Because this isn’t a “build.” It’s a weaponized experience.
+---
 
-We are the only project that:
+## 🚀 How It Works (Barebones)  
+You click.  
 
-Evolves gameplay against the player.
+Groq AI watches.  
 
-Trains an AI to be an emotional manipulator.
+Groq AI lies.  
 
-Records psychological failure immutably.
+You lose trust.  
 
-Turns fun into fear in under 3 minutes.
+Monad records your fall... forever on blockchain.  
 
-Everyone else built apps.
-We built trauma.
+*Not just a game.  
+An on-chain memory of your defeat.*  
 
-✨ Game Features
-🎯 Evolving deception through Groq API
+---
 
-🧠 Player mind-state tracking (hidden)
+## 💀 Why Judges Will Care  
+Because this isn’t a "build." It’s a weaponized experience.  
 
-🎭 Stage-specific mind-traps based on real psychology
+We are the only project that:  
 
-💥 Blur Bomb (temporary AI confusion tool)
+- Evolves gameplay against the player  
+- Trains an AI to be an emotional manipulator  
+- Records psychological failure immutably  
+- Turns fun into fear in under 3 minutes  
 
-🧬 NFT Mind Scores via Monad smart contracts
+*Everyone else built apps.  
+We built trauma.*  
 
-🛡️ Cognitive Shields and False Hints (player defense mechanics)
+---
 
-🔥 15 Stage Themes Inspired by the Best Psychological Games Ever
+## ✨ Game Features  
+🎯 Evolving deception through Groq API  
+🧠 Player mind-state tracking (hidden)  
+🎭 Stage-specific mind-traps based on real psychology  
+💥 Blur Bomb (temporary AI confusion tool)  
+🧬 NFT Mind Scores via Monad smart contracts  
+🛡️ Cognitive Shields and False Hints (player defense mechanics)  
+🔥 15 Stage Themes Inspired by the Best Psychological Games Ever  
 
-🎨 Visual Journey
-Starts at 30% darkness.
+---
 
-Evolves stage-by-stage into glitching madness.
+## 🎨 Visual Journey  
+Starts at 30% darkness.  
 
-Final stages: visual breakdown, heavy breathing audio, player’s hesitation turned weaponized.
+Evolves stage-by-stage into glitching madness.  
 
-🧨 Killer Differentiators
+Final stages: visual breakdown, heavy breathing audio, player’s hesitation turned weaponized.  
 
-Feature	How It Kills
-Psychological Realism	Based on real cognitive biases and research papers.
-Evolving Deception	Groq API trained to lie harder as you survive longer.
-Immutable Trauma	Monad records wins/fails forever.
-Emotional Engineering	Custom sound design and visual escalation.
-Player Powers	Blur Bombs, Shields, Mirror — strategic survival tools.
-🧩 Lessons Learned (The Hard Way)
-Good ideas are cheap. Execution under death-clock matters.
+---
 
-Assets are everything. No art = no soul.
+## 🧨 Killer Differentiators  
 
-Time management is life.
+| Feature                | How It Kills                                                           |
+|------------------------|------------------------------------------------------------------------|
+| Psychological Realism  | Based on real cognitive biases and research papers                     |
+| Evolving Deception     | Groq API trained to lie harder as you survive longer                   |
+| Immutable Trauma       | Monad records wins/fails forever                                       |
+| Emotional Engineering  | Custom sound design and visual escalation                              |
+| Player Powers          | Blur Bombs, Shields, Mirror — strategic survival tools                 |
 
-Trust your insane ideas. They leave scars.
+---
 
-We wasted days struggling on visuals.
-We fought Lovable’s limits.
-We forgot time.
+## 🧩 Lessons Learned (The Hard Way)  
+Good ideas are cheap. Execution under death-clock matters.  
 
-But even on broken legs, we dragged this monster across the finish line.
+Assets are everything. No art = no soul.  
 
-🛠 How to Run Locally
-bash
-Copy
-Edit
-git clone https://github.com/your-username/catch-if-you-can.git
-npm install
-npm run dev
-✅ Testnet Setup:
+Time management is life.  
 
-Monad wallet connected
+Trust your insane ideas. They leave scars.  
 
-Groq API key set via .env
+We wasted days struggling on visuals.  
+We fought Lovable’s limits.  
+We forgot time.  
 
-Deployable with single push to Vercel
+But even on broken legs, we dragged this monster across the finish line.  
 
-📢 Final Words
-Catch If You Can is not a game.
-It’s a mirror.
-If you lose, it’s not bad luck.
-
-It’s because you were weaker than the machine.
-
-"This README isn’t documentation.
-It’s a gravestone for every ‘safe’ idea that ever bored a judge to death."
+---
+*This README isn’t documentation.
+It’s a gravestone for every ‘safe’ idea that ever bored a judge to death.*
