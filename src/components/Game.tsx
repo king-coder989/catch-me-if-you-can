@@ -8,7 +8,7 @@ import GameStats from './GameStats';
 import StageTransition from './StageTransition';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { fetchGroqHint } from '@/pages';
+import { fetchGroqHint } from '@/lib/groq-utils'; // Updated import path
 import { 
   Eye, 
   HandHelping, 
