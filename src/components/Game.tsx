@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';   // ⬅️ Add useEffect
 import { useGame } from '../contexts/GameContext';
 import Door from './Door';
 import AIMessage from './AIMessage';
@@ -8,11 +7,26 @@ import GameStats from './GameStats';
 import StageTransition from './StageTransition';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { fetchGroqHint } from '@/pages';    // ⬅️ Import Groq hint fetcher
 
 const Game: React.FC = () => {
   const { stageType, doorResults, isNewStage, isGameOver, continueGame, resetGame } = useGame();
-  
-  // Get background style based on stage
+
+  // 🚀 Fetch Groq hint after player selects a door
+  useEffect(() => {
+    const handleGroqHint = async () => {
+      if (doorResults.some(door => door !== null)) {   // ⬅️ Player clicked a door
+        const playerHistory = `Doors clicked: ${JSON.stringify(doorResults)}`;
+        const hint = await fetchGroqHint(playerHistory);
+        console.log("Groq Hint:", hint);  // 🔥 Now hint will show up in console
+        // Later: Display hint in AIMessage component if you want
+      }
+    };
+
+    handleGroqHint();
+  }, [doorResults]);   // ⬅️ Dependency: whenever player clicks door
+
+  // ⬇️ Your original background style function
   const getBackgroundStyle = () => {
     switch (stageType) {
       case 'early':
@@ -25,33 +39,33 @@ const Game: React.FC = () => {
         return 'bg-black text-stage-final-text';
     }
   };
-  
+
   // Determine if a door has been selected
   const isDoorSelected = doorResults.some(door => door !== null);
-  
+
   return (
     <div className={cn("min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-1000", getBackgroundStyle())}>
       {/* Stage transition screen */}
       {isNewStage && <StageTransition />}
-      
+
       {/* Game container */}
       <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
         {/* Game stats */}
         <GameStats />
-        
+
         {/* Doubt meter */}
         <DoubtMeter />
-        
+
         {/* AI message */}
         <AIMessage />
-        
+
         {/* Doors */}
         <div className="flex justify-center items-center my-10 w-full">
           <Door index={0} />
           <Door index={1} />
           <Door index={2} />
         </div>
-        
+
         {/* Continue or reset buttons */}
         {isDoorSelected && !isGameOver && (
           <Button 
@@ -67,7 +81,7 @@ const Game: React.FC = () => {
             Continue to Next Stage
           </Button>
         )}
-        
+
         <Button 
           variant="outline" 
           onClick={resetGame}
