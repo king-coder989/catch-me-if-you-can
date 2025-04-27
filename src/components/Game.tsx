@@ -8,7 +8,8 @@ import GameStats from './GameStats';
 import StageTransition from './StageTransition';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { fetchGroqHint } from '@/lib/groq-utils'; // Updated import path
+import { fetchAIResponse } from '@/lib/ai-utils';
+import { getBackgroundImage, getBackgroundStyle } from '@/lib/background-utils';
 import { 
   Eye, 
   HandHelping, 
@@ -16,37 +17,54 @@ import {
   Book
 } from 'lucide-react';
 import AIDiary from './AIDiary';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const Game: React.FC = () => {
   const { 
+    stage, 
     stageType, 
     doorResults, 
     isNewStage, 
     isGameOver, 
-    continueGame, 
     resetGame,
     availableDesperationMoves,
     useDesperationMove,
     gameHistory,
-    aiPersonality
+    aiPersonality,
+    doubtLevel,
+    consecutiveLosses,
+    updateAIMessage
   } = useGame();
   
   const [showDiary, setShowDiary] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ top: '90%', left: '80%' });
   const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [backgroundImage, setBackgroundImage] = useState<string>("/images/backgrounds/stage1.png");
 
-  // 🚀 Fetch Groq hint after player selects a door
+  // Update background image when stage changes
   useEffect(() => {
-    const handleGroqHint = async () => {
-      if (doorResults.some(door => door !== null)) {   
-        const playerHistory = `Doors clicked: ${JSON.stringify(doorResults)}`;
-        const hint = await fetchGroqHint(playerHistory);
-        console.log("Groq Hint:", hint);
+    setBackgroundImage(getBackgroundImage(stage));
+  }, [stage]);
+
+  // 🚀 Fetch Groq AI response when needed
+  useEffect(() => {
+    const fetchAndUpdateAI = async () => {
+      // Only fetch AI response for new stages or when a door is selected
+      if (isNewStage || doorResults.some(door => door !== null)) {   
+        const aiResponse = await fetchAIResponse(
+          stage,
+          doubtLevel,
+          aiPersonality,
+          consecutiveLosses,
+          isNewStage
+        );
+        
+        updateAIMessage(aiResponse.message);
       }
     };
 
-    handleGroqHint();
-  }, [doorResults]);
+    fetchAndUpdateAI();
+  }, [isNewStage, doorResults, stage, doubtLevel, aiPersonality, consecutiveLosses, updateAIMessage]);
 
   // Move the floating "Try Again" button randomly when hovered
   useEffect(() => {
@@ -101,20 +119,6 @@ const Game: React.FC = () => {
     }
   };
 
-  // ⬇️ Your original background style function
-  const getBackgroundStyle = () => {
-    switch (stageType) {
-      case 'early':
-        return 'bg-stage-early-bg text-stage-early-text';
-      case 'middle':
-        return 'bg-stage-middle-bg text-stage-middle-text';
-      case 'late':
-        return 'bg-stage-late-bg text-white';
-      case 'final':
-        return 'bg-black text-stage-final-text';
-    }
-  };
-
   // Determine if a door has been selected
   const isDoorSelected = doorResults.some(door => door !== null);
   
@@ -122,7 +126,15 @@ const Game: React.FC = () => {
   const shouldShowDiaryOption = gameHistory.gamesPlayed >= 5;
 
   return (
-    <div className={cn("min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-1000 relative", getBackgroundStyle())}>
+    <div 
+      className={cn("min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-1000 relative", getBackgroundStyle(stageType))}
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
       {/* Stage transition screen */}
       {isNewStage && <StageTransition />}
 
@@ -146,8 +158,24 @@ const Game: React.FC = () => {
         {/* Doubt meter */}
         <DoubtMeter />
 
-        {/* AI message */}
-        <AIMessage />
+        {/* AI Message with Avatar */}
+        <div className="flex items-start w-full gap-3 mb-4">
+          <Avatar className="w-12 h-12 mt-2">
+            <AvatarImage src={`/images/ai-${aiPersonality}.png`} alt="AI Personality" />
+            <AvatarFallback className={cn(
+              aiPersonality === 'trickster' ? "bg-blue-300" :
+              aiPersonality === 'manipulator' ? "bg-purple-300" :
+              "bg-red-300"
+            )}>
+              {aiPersonality === 'trickster' ? "T" :
+               aiPersonality === 'manipulator' ? "M" :
+               "P"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <AIMessage />
+          </div>
+        </div>
 
         {/* Doors */}
         <div className="flex justify-center items-center my-10 w-full">
@@ -222,22 +250,6 @@ const Game: React.FC = () => {
             Beg For Mercy
           </Button>
         </div>
-
-        {/* Continue or reset buttons */}
-        {isDoorSelected && !isGameOver && (
-          <Button 
-            onClick={continueGame}
-            className={cn(
-              "mt-4 px-8",
-              stageType === 'early' ? "bg-blue-500 hover:bg-blue-600" : 
-              stageType === 'middle' ? "bg-purple-500 hover:bg-purple-600" : 
-              stageType === 'late' ? "bg-gray-700 hover:bg-gray-800" :
-              "bg-purple-800 hover:bg-purple-900"
-            )}
-          >
-            Continue to Next Stage
-          </Button>
-        )}
 
         {/* Diary Button (shows after 5 games) */}
         {shouldShowDiaryOption && (

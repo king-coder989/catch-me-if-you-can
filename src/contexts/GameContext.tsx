@@ -8,7 +8,7 @@ type DoorResult = 'win' | 'lose' | null;
 type GameStage = 'early' | 'middle' | 'late' | 'final';
 
 // Define AI personality types
-type AIPersonality = 'trickster' | 'manipulator' | 'psycho';
+export type AIPersonality = 'trickster' | 'manipulator' | 'psycho';
 
 // Define desperation moves
 type DesperationMove = 'peek' | 'beg' | null;
@@ -44,6 +44,7 @@ interface GameContextType {
   resetGame: () => void;
   continueGame: () => void;
   useDesperationMove: (move: DesperationMove, doorIndex?: number) => void;
+  updateAIMessage: (message: string) => void;
 }
 
 // Create the context with default values
@@ -77,6 +78,7 @@ const GameContext = createContext<GameContextType>({
   resetGame: () => {},
   continueGame: () => {},
   useDesperationMove: () => {},
+  updateAIMessage: () => {},
 });
 
 // Custom hook to use the game context
@@ -103,159 +105,6 @@ const saveGameHistory = (history: any) => {
     localStorage.setItem('gameHistory', JSON.stringify(history));
   } catch (error) {
     console.error('Error saving game history:', error);
-  }
-};
-
-// AI messages based on stage, trust level, and personality
-const getAIMessage = (
-  stage: number, 
-  doubtLevel: number, 
-  isNewStage: boolean, 
-  personality: AIPersonality,
-  consecutiveLosses: number,
-): string => {
-  // Add special messages for consecutive losses (Partial Progress system)
-  if (consecutiveLosses === 3) {
-    return "Three losses in a row? Maybe I should give you a little hint... The middle door isn't always what it seems.";
-  } else if (consecutiveLosses === 5) {
-    return "Five losses! You're quite persistent. Here's a clue: I tend to rotate the winning door in patterns.";
-  } else if (consecutiveLosses === 7) {
-    return "Seven losses! I'm almost impressed. Secret: I put wins in prime-numbered stages more often.";
-  }
-
-  // Early stage messages (1-3)
-  if (stage <= 3) {
-    if (isNewStage) {
-      if (personality === 'trickster') {
-        return [
-          "Welcome! Choose any door you'd like. I'll be here to help you.",
-          "You're doing great! Just keep following your intuition.",
-          "Trust me, you're getting better at this. I can see your pattern."
-        ][stage - 1];
-      } else if (personality === 'manipulator') {
-        return [
-          "Welcome! I'll be fair... mostly. Pick a door, any door!",
-          "Interesting how you choose. I'm starting to understand your preferences.",
-          "Your choices reveal so much about you. Let's continue..."
-        ][stage - 1];
-      } else {
-        return [
-          "Let's play a little game. I promise to be... fair.",
-          "Doors, doors, doors. Who knows what's behind them? I do.",
-          "Your decisions are so predictable. It's almost too easy."
-        ][stage - 1];
-      }
-    }
-    
-    if (doubtLevel > 70) {
-      return "Good choice! I'm here to guide you to success.";
-    } else if (doubtLevel < 30) {
-      return "I understand your caution. Take your time deciding.";
-    } else {
-      return "That's an interesting choice. Let's see what happens.";
-    }
-  }
-  
-  // Middle stage messages (4-7)
-  else if (stage <= 7) {
-    if (isNewStage) {
-      if (personality === 'trickster') {
-        return [
-          "Things get a bit trickier now. Watch carefully.",
-          "Do you feel like you're getting better? Or just luckier?",
-          "I wonder if you can see the pattern yet. I certainly do.",
-          "The doors look the same, but are they really?"
-        ][Math.min(stage - 4, 3)];
-      } else if (personality === 'manipulator') {
-        return [
-          "The game evolves, just as I evolve. Can you keep up?",
-          "Your choices say so much about your psychology. Fascinating.",
-          "Sometimes I help, sometimes I don't. Can you tell which is which?",
-          "What if I told you there's a system to this madness?"
-        ][Math.min(stage - 4, 3)];
-      } else {
-        return [
-          "Let's make this more interesting, shall we?",
-          "Your mind is so easily influenced. Watch me prove it.",
-          "The doors might not stay where you expect them to...",
-          "Don't blink. You might miss something important."
-        ][Math.min(stage - 4, 3)];
-      }
-    }
-    
-    if (doubtLevel > 70) {
-      return "Your trust is... touching. But is it misplaced?";
-    } else if (doubtLevel < 30) {
-      return "So suspicious! But sometimes paranoia is justified...";
-    } else {
-      return "I see you're keeping your options open. Wise.";
-    }
-  }
-  
-  // Late stage messages (8-12)
-  else if (stage <= 12) {
-    if (isNewStage) {
-      if (personality === 'trickster') {
-        return [
-          "Do you still think this is about finding the right door?",
-          "I'm learning so much about how your mind works.",
-          "The more you play, the more I understand you.",
-          "Your choices are so... predictable now.",
-          "Do you feel like you're in control of your decisions?"
-        ][Math.min(stage - 8, 4)];
-      } else if (personality === 'manipulator') {
-        return [
-          "I know which door you'll pick before you do.",
-          "Your patterns are so clear to me now. Like reading a book.",
-          "Truth or lie? Can you even tell anymore?",
-          "Sometimes I wonder if you know that I'm manipulating you.",
-          "Your choices aren't as random as you think they are."
-        ][Math.min(stage - 8, 4)];
-      } else {
-        return [
-          "The rules are changing. Can you feel it?",
-          "What if the doors move after you choose? Just a thought.",
-          "Trust nothing. Not even what you see.",
-          "Your confusion is delicious.",
-          "Oops. Did that door just... move?"
-        ][Math.min(stage - 8, 4)];
-      }
-    }
-    
-    if (doubtLevel > 70) {
-      return "Your blind trust is fascinating. And so useful to me.";
-    } else if (doubtLevel < 30) {
-      return "Your distrust changes nothing. I'm still in control.";
-    } else {
-      return "Balanced between trust and doubt. But still playing my game.";
-    }
-  }
-  
-  // Final stage messages (13-15)
-  else {
-    if (isNewStage) {
-      if (personality === 'trickster') {
-        return [
-          "We're near the end now. But what did you really win?",
-          "Every choice you made taught me more about how to manipulate you.",
-          "This was never about the doors. It was about mapping your decision patterns."
-        ][Math.min(stage - 13, 2)];
-      } else if (personality === 'manipulator') {
-        return [
-          "Did you enjoy being experimented on?",
-          "Your mind was an open book all along.",
-          "Thank you for your participation. Your data is very valuable."
-        ][Math.min(stage - 13, 2)];
-      } else {
-        return [
-          "The game was rigged from the start.",
-          "Nothing was ever where you thought it was.",
-          "Your perception of control was the greatest illusion of all."
-        ][Math.min(stage - 13, 2)];
-      }
-    }
-    
-    return "I know exactly what you'll choose before you do. You're that predictable now.";
   }
 };
 
@@ -304,6 +153,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     gamesPlayed: 0,
   });
   const [peekingDoor, setPeekingDoor] = useState<number | null>(null);
+  const [lastWin, setLastWin] = useState<boolean>(false);
   
   // Load game history on initial render
   useEffect(() => {
@@ -322,6 +172,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newPersonality = getAIPersonality(wins, losses);
     setAIPersonality(newPersonality);
   }, [wins, losses]);
+  
+  // Auto-progress to next stage after a win (with delay)
+  useEffect(() => {
+    if (lastWin) {
+      const timer = setTimeout(() => {
+        continueGame();
+        setLastWin(false);
+      }, 2000); // 2 second delay before auto-advancing
+      return () => clearTimeout(timer);
+    }
+  }, [lastWin]);
+  
+  // Update message when AI provides a new one
+  const updateAIMessage = (newMessage: string) => {
+    setMessage(newMessage);
+  };
   
   // Decision logic - gets more manipulative as game progresses
   const determineWinningDoor = (doorIndex: number): boolean => {
@@ -380,11 +246,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Update message when stage, doubt level, or personality changes
-  useEffect(() => {
-    setMessage(getAIMessage(stage, doubtLevel, isNewStage, aiPersonality, consecutiveLosses));
-  }, [stage, doubtLevel, isNewStage, aiPersonality, consecutiveLosses]);
-
   // Update stage type when stage changes
   useEffect(() => {
     setStageType(getStageType(stage));
@@ -426,6 +287,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setConsecutiveWins(consecutiveWins + 1);
       setConsecutiveLosses(0);
       toast.success("You found the right door!");
+      setLastWin(true); // Mark for auto-progression
+      
+      // Replenish peek ability when winning (as a reward)
+      if (!availableDesperationMoves.peek) {
+        setAvailableDesperationMoves(prev => ({ ...prev, peek: true }));
+        toast.info("You've earned another peek!");
+      }
     } else {
       setLosses(losses + 1);
       setConsecutiveLosses(consecutiveLosses + 1);
@@ -528,6 +396,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       beg: true,
     });
     setPeekingDoor(null);
+    setLastWin(false);
     
     // Show "Granny's Curse" message if this isn't the first game
     if (gameHistory.gamesPlayed > 0) {
@@ -560,7 +429,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setDoubtLevel,
     resetGame,
     continueGame,
-    useDesperationMove
+    useDesperationMove,
+    updateAIMessage
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

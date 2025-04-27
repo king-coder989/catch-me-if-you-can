@@ -79,7 +79,7 @@ const AIMessage: React.FC = () => {
   };
   
   return (
-    <Card className={cn("w-full mb-4", getMessageStyle())}>
+    <Card className={cn("w-full", getMessageStyle())}>
       <CardContent className="p-4">
         <p 
           className={getTextEffectClass()}

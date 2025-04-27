@@ -13,12 +13,11 @@ const StageTransition: React.FC = () => {
     if (!isGameOver && visible) {
       const timer = setTimeout(() => {
         setVisible(false);
-        continueGame();
       }, 3000);
       
       return () => clearTimeout(timer);
     }
-  }, [visible, continueGame, isGameOver]);
+  }, [visible, isGameOver]);
   
   // Get background style based on stage
   const getBackgroundStyle = () => {
@@ -82,9 +81,9 @@ const StageTransition: React.FC = () => {
       <div className="relative z-10 text-center p-6 max-w-md animate-fade-in">
         <h2 
           className={cn("text-4xl font-bold mb-4", shouldApplyGlitch ? "glitch" : "")}
-          data-text={stageType === 'final' ? `Stage ${stage}: ${getTitleMessage()}` : `Stage ${stage}`}
+          data-text={`Stage ${stage}: ${getTitleMessage()}`}
         >
-          {stageType === 'final' ? `Stage ${stage}: ${getTitleMessage()}` : `Stage ${stage}`}
+          Stage {stage}: {getTitleMessage()}
         </h2>
         
         <p 
@@ -108,7 +107,6 @@ const StageTransition: React.FC = () => {
             className="border-2 border-white hover:bg-white hover:text-black transition-all"
             onClick={() => {
               setVisible(false);
-              continueGame();
             }}
           >
             Continue
