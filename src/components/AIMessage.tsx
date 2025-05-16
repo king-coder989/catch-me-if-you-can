@@ -8,10 +8,24 @@ const AIMessage: React.FC = () => {
   const { message, stageType, aiPersonality } = useGame();
   const [displayText, setDisplayText] = useState('');
   const [charIndex, setCharIndex] = useState(0);
+  const [initialGreeting, setInitialGreeting] = useState(true);
+  
+  const getInitialGreeting = () => {
+    if (aiPersonality === 'trickster') {
+      return "Feeling lucky today? Let's see if the doors agree with you...";
+    } else if (aiPersonality === 'manipulator') {
+      return "I know exactly which door you should choose. Trust me?";
+    } else {
+      return "Choose wisely... or don't. Either way, I'll enjoy watching.";
+    }
+  };
   
   // Typing effect
   useEffect(() => {
-    if (charIndex < message.length) {
+    // If there's no message yet, use the initial greeting
+    const textToType = message || (initialGreeting ? getInitialGreeting() : "");
+    
+    if (charIndex < textToType.length) {
       // Speed varies by stage and personality
       const baseTypingSpeed = 
         stageType === 'early' ? 30 : 
@@ -27,27 +41,30 @@ const AIMessage: React.FC = () => {
       const typingSpeed = baseTypingSpeed * personalityFactor;
                           
       const timer = setTimeout(() => {
-        setDisplayText(prev => prev + message[charIndex]);
+        setDisplayText(prev => prev + textToType[charIndex]);
         setCharIndex(charIndex + 1);
       }, typingSpeed);
       
       return () => clearTimeout(timer);
     }
-  }, [charIndex, message, stageType, aiPersonality]);
+  }, [charIndex, message, stageType, aiPersonality, initialGreeting]);
   
   // Reset when message changes
   useEffect(() => {
-    setDisplayText('');
-    setCharIndex(0);
+    if (message) {
+      setInitialGreeting(false);
+      setDisplayText('');
+      setCharIndex(0);
+    }
   }, [message]);
   
-  // Determine text style based on stage and personality
+  // Determine card style based on stage and personality
   const getMessageStyle = () => {
     // Base stage style
     const stageStyle = 
-      stageType === 'early' ? 'bg-stage-early-bg text-white' :
-      stageType === 'middle' ? 'bg-stage-middle-bg text-white' :
-      stageType === 'late' ? 'bg-stage-late-bg text-white' :
+      stageType === 'early' ? 'bg-blue-500 bg-opacity-90 text-white' :
+      stageType === 'middle' ? 'bg-purple-500 bg-opacity-90 text-white' :
+      stageType === 'late' ? 'bg-purple-900 bg-opacity-90 text-white' :
       'bg-black text-white border-purple-500';
       
     // Personality style additions
@@ -56,7 +73,7 @@ const AIMessage: React.FC = () => {
       aiPersonality === 'manipulator' ? 'border-purple-400' :
       'border-red-500'; // psycho
       
-    return cn(stageStyle, personalityStyle);
+    return cn(stageStyle, personalityStyle, "border-2");
   };
   
   // Apply different effects based on AI personality
@@ -79,7 +96,7 @@ const AIMessage: React.FC = () => {
   };
   
   return (
-    <Card className={cn("w-full", getMessageStyle())}>
+    <Card className={cn("w-full rounded-lg shadow-lg", getMessageStyle())}>
       <CardContent className="p-4">
         <p 
           className={getTextEffectClass()}

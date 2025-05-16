@@ -97,6 +97,11 @@
   }
 }
 
+/* Text shadow for better readability on all screens */
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.75);
+}
+
 .glitch {
   position: relative;
 }
@@ -198,9 +203,15 @@
   transform-style: preserve-3d;
   transition: transform 0.3s ease;
   backface-visibility: visible;
+  min-height: 200px;
 }
 
 .door-content {
   backface-visibility: hidden;
   transform: rotateY(180deg);
+}
+
+/* Improve landing page readability */
+.landing-text {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.75);
 }

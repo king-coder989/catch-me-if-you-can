@@ -33,10 +33,10 @@ export function getAIAvatar(personality: AIPersonalityType, stageType: GameStage
  * Fetch a response from the AI based on the current game state
  */
 export async function fetchAIResponse(
-  apiKey: string,
   prompt: string
 ): Promise<string> {
   try {
+    const apiKey = "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";
     console.log("Sending prompt to Groq API:", prompt);
     
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -95,20 +95,20 @@ export function shouldGenerateMessage(
 export function getFallbackMessage(stage: number, personality: AIPersonalityType): string {
   if (stage <= 3) {
     return personality === 'trickster' 
-      ? "Trust me, I'm here to help you win." 
-      : "Pick the door your instinct guides you to.";
+      ? "Trust me, I'm here to help you win. Choose wisely!" 
+      : "Pick the door your instinct guides you to. I believe in you!";
   } 
   else if (stage <= 7) {
     return personality === 'manipulator' 
-      ? "The middle door seems lucky today. Or is it?" 
-      : "Your last choice was interesting. Let me guide you better.";
+      ? "The middle door seems lucky today. Or is it? Hehe..." 
+      : "Your last choice was interesting. Let me guide you better this time...";
   }
   else if (stage <= 12) {
     return personality === 'psycho' 
-      ? "I can smell your fear. Choose wisely." 
-      : "After all this time, do you still trust me?";
+      ? "I can smell your fear. Choose wisely... or don't. I'll enjoy either way." 
+      : "After all this time, do you still trust me? Let's find out...";
   }
   else {
-    return "So close to the end. Do you really think you'll make it?";
+    return "So close to the end. Do you really think you'll make it? Choose carefully...";
   }
 }

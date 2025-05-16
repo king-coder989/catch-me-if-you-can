@@ -8,7 +8,6 @@ import StageTransition from './StageTransition';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { fetchAIResponse, buildPrompt } from '@/lib/ai-utils';
-import { GROQ_API_KEY } from '@/lib/api-config';
 import { 
   Eye, 
   HandHelping, 
@@ -65,7 +64,7 @@ const Game: React.FC = () => {
         
         try {
           // Fetch response from AI using our util function
-          const aiResponseText = await fetchAIResponse(GROQ_API_KEY, prompt);
+          const aiResponseText = await fetchAIResponse(prompt);
           updateAIMessage(aiResponseText);
         } catch (error) {
           console.error("Error fetching AI response:", error);

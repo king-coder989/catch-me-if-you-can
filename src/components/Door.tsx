@@ -20,14 +20,14 @@ const Door: React.FC<DoorProps> = ({ index }) => {
   
   // Determine door appearance based on stage
   const getDoorStyle = () => {
-    const baseStyles = "transition-all duration-300 flex flex-col items-center justify-center border-2";
+    const baseStyles = "transition-all duration-300 flex flex-col items-center justify-center border-2 relative overflow-hidden";
     
     // Door is open and has a result
     if (doorResults[index] !== null) {
       return cn(
         baseStyles,
         "door animate-door-open",
-        doorResults[index] === 'win' ? "bg-green-500 border-green-400" : "bg-red-500 border-red-400"
+        doorResults[index] === 'win' ? "bg-green-600 border-green-400" : "bg-red-600 border-red-400"
       );
     }
     
@@ -39,20 +39,20 @@ const Door: React.FC<DoorProps> = ({ index }) => {
         "door animate-door-peek",
         // AI might lie based on personality
         aiPersonality === 'manipulator' && Math.random() < 0.3 
-          ? "bg-red-500 border-red-400" 
-          : "bg-green-500 border-green-400"
+          ? "bg-red-600 border-red-400" 
+          : "bg-green-600 border-green-400"
       );
     }
     
-    // Door is closed - make them more visible with borders
+    // Door is closed
     return cn(
       baseStyles,
       "door cursor-pointer",
       isHovering && !isProcessing ? "animate-door-hover" : "",
       stageType === 'early' 
-        ? "bg-blue-600 hover:bg-blue-500 border-blue-300" :
+        ? "bg-blue-600 hover:bg-blue-500 border-blue-400" :
       stageType === 'middle' 
-        ? "bg-purple-600 hover:bg-purple-500 border-purple-300" :
+        ? "bg-purple-600 hover:bg-purple-500 border-purple-400" :
       stageType === 'late' 
         ? "bg-purple-800 hover:bg-purple-700 border-purple-500" :
       "bg-purple-900 hover:bg-purple-800 border-purple-600",
@@ -113,7 +113,11 @@ const Door: React.FC<DoorProps> = ({ index }) => {
             <DoorOpen size={48} className="text-white" />
           )}
         </div>
-        <div className="absolute bottom-2 text-center text-white font-bold">
+        
+        {/* Door handle */}
+        <div className="absolute right-2 top-1/2 w-3 h-8 bg-amber-800 rounded-sm"></div>
+        
+        <div className="absolute bottom-2 text-center text-white font-bold text-shadow">
           Door {index + 1}
         </div>
         {getDoorContent()}
