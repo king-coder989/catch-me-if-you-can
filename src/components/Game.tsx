@@ -8,8 +8,8 @@ import GameStats from './GameStats';
 import StageTransition from './StageTransition';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { fetchAIResponse } from '@/lib/ai-utils';
-import { getBackgroundImage, getBackgroundStyle } from '@/lib/background-utils';
+import { fetchAIResponse, buildPrompt } from '@/lib/ai-utils';
+import { GROQ_API_KEY } from '@/lib/api-config';
 import { 
   Eye, 
   HandHelping, 
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import AIDiary from './AIDiary';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { getBackgroundImage, getBackgroundStyle } from '@/lib/background-utils';
 
 const Game: React.FC = () => {
   const { 
@@ -50,21 +51,31 @@ const Game: React.FC = () => {
   useEffect(() => {
     const fetchAndUpdateAI = async () => {
       // Only fetch AI response for new stages or when a door is selected
-      if (isNewStage || doorResults.some(door => door !== null)) {   
-        const aiResponse = await fetchAIResponse(
-          stage,
-          doubtLevel,
-          aiPersonality,
-          consecutiveLosses,
-          isNewStage
-        );
+      if (isNewStage || doorResults.some(door => door !== null)) {
+        // Build the prompt with current game state
+        const doorChoiceHistory = gameHistory.doorSelections
+          .map((count, index) => count > 0 ? `Door ${index + 1}: ${count}` : null)
+          .filter(Boolean) as string[];
+          
+        const stats = {
+          winStreak: gameHistory.currentWinStreak || 0,
+          lossStreak: gameHistory.currentLossStreak || consecutiveLosses
+        };
         
-        updateAIMessage(aiResponse.message);
+        const prompt = buildPrompt(stage, doorChoiceHistory, stats);
+        
+        try {
+          // Fetch response from AI using our util function
+          const aiResponseText = await fetchAIResponse(GROQ_API_KEY, prompt);
+          updateAIMessage(aiResponseText);
+        } catch (error) {
+          console.error("Error fetching AI response:", error);
+        }
       }
     };
 
     fetchAndUpdateAI();
-  }, [isNewStage, doorResults, stage, doubtLevel, aiPersonality, consecutiveLosses, updateAIMessage]);
+  }, [isNewStage, doorResults, stage, doubtLevel, aiPersonality, consecutiveLosses, updateAIMessage, gameHistory]);
 
   // Move the floating "Try Again" button randomly when hovered
   useEffect(() => {
