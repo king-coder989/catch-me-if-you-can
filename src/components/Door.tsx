@@ -20,14 +20,14 @@ const Door: React.FC<DoorProps> = ({ index }) => {
   
   // Determine door appearance based on stage
   const getDoorStyle = () => {
-    const baseStyles = "transition-all duration-300 flex flex-col items-center justify-center";
+    const baseStyles = "transition-all duration-300 flex flex-col items-center justify-center border-2";
     
     // Door is open and has a result
     if (doorResults[index] !== null) {
       return cn(
         baseStyles,
         "door animate-door-open",
-        doorResults[index] === 'win' ? "bg-green-500" : "bg-red-500"
+        doorResults[index] === 'win' ? "bg-green-500 border-green-400" : "bg-red-500 border-red-400"
       );
     }
     
@@ -38,19 +38,24 @@ const Door: React.FC<DoorProps> = ({ index }) => {
         baseStyles,
         "door animate-door-peek",
         // AI might lie based on personality
-        aiPersonality === 'manipulator' && Math.random() < 0.3 ? "bg-red-500" : "bg-green-500"
+        aiPersonality === 'manipulator' && Math.random() < 0.3 
+          ? "bg-red-500 border-red-400" 
+          : "bg-green-500 border-green-400"
       );
     }
     
-    // Door is closed
+    // Door is closed - make them more visible with borders
     return cn(
       baseStyles,
       "door cursor-pointer",
       isHovering && !isProcessing ? "animate-door-hover" : "",
-      stageType === 'early' ? "bg-stage-early-door hover:bg-blue-600" :
-      stageType === 'middle' ? "bg-stage-middle-door hover:bg-purple-600" :
-      stageType === 'late' ? "bg-stage-late-door hover:bg-purple-800" :
-      "bg-stage-final-door hover:bg-purple-900",
+      stageType === 'early' 
+        ? "bg-blue-600 hover:bg-blue-500 border-blue-300" :
+      stageType === 'middle' 
+        ? "bg-purple-600 hover:bg-purple-500 border-purple-300" :
+      stageType === 'late' 
+        ? "bg-purple-800 hover:bg-purple-700 border-purple-500" :
+      "bg-purple-900 hover:bg-purple-800 border-purple-600",
     );
   };
   
@@ -100,13 +105,16 @@ const Door: React.FC<DoorProps> = ({ index }) => {
               size={48} 
               className={cn(
                 "text-white",
-                stageType === 'final' ? "opacity-70" : "opacity-100",
+                stageType === 'final' ? "opacity-90" : "opacity-100",
                 peekingDoor === index ? "animate-pulse" : ""
               )} 
             />
           ) : (
             <DoorOpen size={48} className="text-white" />
           )}
+        </div>
+        <div className="absolute bottom-2 text-center text-white font-bold">
+          Door {index + 1}
         </div>
         {getDoorContent()}
       </div>

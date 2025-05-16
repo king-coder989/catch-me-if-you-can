@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { useGame } from '../contexts/GameContext';
 import Door from './Door';
 import AIMessage from './AIMessage';
-import DoubtMeter from './DoubtMeter';
 import GameStats from './GameStats';
 import StageTransition from './StageTransition';
 import { Button } from '@/components/ui/button';
@@ -166,9 +165,6 @@ const Game: React.FC = () => {
            "Psycho Mode"}
         </div>
 
-        {/* Doubt meter */}
-        <DoubtMeter />
-
         {/* AI Message with Avatar */}
         <div className="flex items-start w-full gap-3 mb-4">
           <Avatar className="w-12 h-12 mt-2">
@@ -196,7 +192,7 @@ const Game: React.FC = () => {
         </div>
 
         {/* Desperation moves */}
-        <div className="flex justify-center gap-4 mb-4">
+        <div className="flex justify-center gap-4 mb-4 flex-wrap">
           <Button
             onClick={() => useDesperationMove('peek', 0)}
             disabled={!availableDesperationMoves.peek || isDoorSelected}
