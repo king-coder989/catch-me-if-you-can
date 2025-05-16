@@ -1,14 +1,10 @@
 
 import React from 'react';
-import Game from '@/components/Game';
-import { GameProvider } from '@/contexts/GameContext';
+import { Navigate } from 'react-router-dom';
 
 const Index = () => {
-  return (
-    <GameProvider>
-      <Game />
-    </GameProvider>
-  );
+  // Redirect to the landing page
+  return <Navigate to="/" replace />;
 };
 
 export default Index;
