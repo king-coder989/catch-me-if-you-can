@@ -1,5 +1,5 @@
 
-import { buildPrompt as composerBuildPrompt } from '../PromptComposer';
+import { buildPrompt as composerBuildPrompt } from './PromptComposer';
 
 // Define types for AI integrations
 export type AIPersonalityType = 'trickster' | 'manipulator' | 'psycho';
@@ -27,6 +27,46 @@ export function getAIAvatar(personality: AIPersonalityType, stageType: GameStage
   
   // Return path to the avatar image
   return avatarPath;
+}
+
+/**
+ * Fetch a response from the AI based on the current game state
+ */
+export async function fetchAIResponse(
+  apiKey: string,
+  prompt: string
+): Promise<string> {
+  try {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "mixtral-8x7b-32768",
+        messages: [
+          { 
+            "role": "system", 
+            "content": prompt 
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 256
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to get AI response");
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error("AI response error:", error);
+    return getFallbackMessage(1, 'trickster'); // Default fallback
+  }
 }
 
 /**
