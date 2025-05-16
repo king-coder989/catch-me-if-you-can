@@ -1,95 +1,90 @@
 
-import { groqApiKey } from './config';
+import { buildPrompt as composerBuildPrompt } from '../PromptComposer';
 
-// Define types for AI responses
-export interface AIResponse {
-  message: string;
-  success: boolean;
+// Define types for AI integrations
+export type AIPersonalityType = 'trickster' | 'manipulator' | 'psycho';
+export type GameStage = 'early' | 'middle' | 'late' | 'final';
+export type DoorChoiceHistory = string[];
+export type StreakStats = { winStreak: number; lossStreak: number };
+
+/**
+ * Wrapper for PromptComposer that's used to build prompts for the AI
+ */
+export function buildPrompt(
+  stage: number,
+  history: DoorChoiceHistory,
+  stats: StreakStats
+): string {
+  return composerBuildPrompt(stage, history, stats);
 }
 
 /**
- * Fetches AI hint from Groq API based on player history
- * @param playerHistory String containing player's game history
- * @returns Promise with AI response object
+ * Get appropriate avatar image for current AI personality and stage
  */
-export const fetchAIResponse = async (
-  playerStage: number, 
-  playerDoubtLevel: number, 
-  playerPersonality: string,
-  playerConsecutiveLosses: number,
-  isNewStage: boolean
-): Promise<AIResponse> => {
-  try {
-    // Build a prompt based on game state
-    const prompt = `
-      You are an AI grandmother in a psychological game where you're testing the player.
-      Game details:
-      - Current stage: ${playerStage}
-      - Player doubt level: ${playerDoubtLevel}/100 (higher = more trusting)
-      - Your personality: ${playerPersonality}
-      - Player consecutive losses: ${playerConsecutiveLosses}
-      - Is this a new stage: ${isNewStage}
+export function getAIAvatar(personality: AIPersonalityType, stageType: GameStage): string {
+  // Try to load avatar from the proper path
+  const avatarPath = `/images/avatars/${personality}_${stageType}.png`;
+  
+  // Return path to the avatar image
+  return avatarPath;
+}
 
-      Generate a short message (max 3 sentences) to the player based on these parameters:
-      
-      ${isNewStage ? "This is a new stage greeting" : "This is a response to their door choice"}
-      ${playerPersonality === 'psycho' ? "Be subtly threatening and unsettling" : 
-        playerPersonality === 'manipulator' ? "Be manipulative and try to mislead them" :
-        "Be playful but somewhat deceptive"}
-      
-      If they've lost ${playerConsecutiveLosses} times in a row and it's 3 or more, include a small hint.
-      
-      Format: Just the dialogue text, no quotation marks or character name.
-    `;
+/**
+ * Determines if a message should be sent to the AI based on game state
+ */
+export function shouldGenerateMessage(
+  isNewStage: boolean, 
+  doorResults: (string | null)[]
+): boolean {
+  // Generate new messages at the start of stages or after door selections
+  return isNewStage || doorResults.some(result => result !== null);
+}
 
-    // Call the Groq API
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${groqApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "meta-llama/llama-4-scout-17b-16e-instruct",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      console.error("API Error:", response.status);
-      throw new Error(`API Error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const aiMessage = data.choices[0].message.content;
-    
-    console.log("AI Response:", aiMessage);
-    
-    return {
-      message: aiMessage,
-      success: true
-    };
-  } catch (error) {
-    console.error("Failed to fetch AI response:", error);
-    
-    // Fallback messages based on personality
-    let fallbackMessage = "";
-    if (playerPersonality === 'psycho') {
-      fallbackMessage = "I see how you play... interesting choice.";
-    } else if (playerPersonality === 'manipulator') {
-      fallbackMessage = "Your decisions reveal more than you know.";
-    } else {
-      fallbackMessage = "Choose wisely, dear... or don't.";
-    }
-    
-    return {
-      message: fallbackMessage,
-      success: false
-    };
+/**
+ * Generates a fallback message if AI API call fails
+ */
+export function getFallbackMessage(stage: number, personality: AIPersonalityType): string {
+  if (stage <= 3) {
+    return personality === 'trickster' 
+      ? "Trust me, I'm here to help you win." 
+      : "Pick the door your instinct guides you to.";
+  } 
+  else if (stage <= 7) {
+    return personality === 'manipulator' 
+      ? "The middle door seems lucky today. Or is it?" 
+      : "Your last choice was interesting. Let me guide you better.";
   }
-};
+  else if (stage <= 12) {
+    return personality === 'psycho' 
+      ? "I can smell your fear. Choose wisely." 
+      : "After all this time, do you still trust me?";
+  }
+  else {
+    return "So close to the end. Do you really think you'll make it?";
+  }
+}
+
+/**
+ * Convert text to speech using Groq API
+ */
+export async function textToSpeech(text: string, apiKey: string): Promise<Blob> {
+  const response = await fetch("https://api.groq.com/openai/v1/audio/speech", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "whisper-1",
+      input: text,
+      voice: "fable", // Female voice for AI grandmother
+    }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to generate speech");
+  }
+
+  return await response.blob();
+}

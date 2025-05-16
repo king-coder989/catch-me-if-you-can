@@ -1,46 +1,47 @@
 
-import React, { useState, useEffect } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import React from 'react';
 import { useGame } from '@/contexts/GameContext';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getAIAvatar } from '@/lib/ai-utils';
 
 interface AIAvatarProps {
-  speaking: boolean;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-const AIAvatar: React.FC<AIAvatarProps> = ({ speaking }) => {
-  const { aiPersonality, currentStage } = useGame();
-  const [avatarSrc, setAvatarSrc] = useState('');
+const AIAvatar: React.FC<AIAvatarProps> = ({ size = 'md' }) => {
+  const { aiPersonality, stageType, currentStage } = useGame();
   
-  useEffect(() => {
-    // Determine avatar based on personality and stage
-    const stageType = currentStage <= 3 ? 'early' : 
-                      currentStage <= 6 ? 'middle' :
-                      currentStage <= 9 ? 'late' : 'final';
-    
-    // In a real implementation, you would have different avatars for each personality and stage
-    const avatarPath = `/images/avatars/${aiPersonality}_${stageType}.png`;
-    
-    // Fallback if avatar doesn't exist
-    setAvatarSrc(avatarPath);
-  }, [aiPersonality, currentStage]);
-
+  // Get avatar image path from the utility function
+  const avatarSrc = getAIAvatar(aiPersonality, stageType);
+  
+  // Determine size class
+  const sizeClass = {
+    'sm': 'h-10 w-10',
+    'md': 'h-16 w-16',
+    'lg': 'h-24 w-24'
+  }[size];
+  
+  // Create fallback initials from the personality type
+  const fallbackInitials = aiPersonality.substring(0, 2).toUpperCase();
+  
+  // Style based on personality
+  const fallbackStyle = {
+    'trickster': 'bg-blue-900',
+    'manipulator': 'bg-purple-900',
+    'psycho': 'bg-red-900',
+  }[aiPersonality];
+  
   return (
-    <div className={`relative ${speaking ? 'animate-pulse' : ''}`}>
-      <Avatar className="h-16 w-16 border-2 border-purple-500">
-        <AvatarImage src={avatarSrc} alt="AI Grandmother" />
-        <AvatarFallback className={
-          aiPersonality === 'trickster' ? 'bg-blue-700' :
-          aiPersonality === 'manipulator' ? 'bg-purple-700' :
-          'bg-red-700'
-        }>
-          {aiPersonality === 'trickster' ? 'GM' :
-           aiPersonality === 'manipulator' ? 'GM' : 'GM'}
+    <div className="relative">
+      <Avatar className={`${sizeClass} border-2 border-purple-500/50`}>
+        <AvatarImage src={avatarSrc} alt={`AI Grandmother (${aiPersonality})`} />
+        <AvatarFallback className={fallbackStyle}>
+          {fallbackInitials}
         </AvatarFallback>
       </Avatar>
-      
-      {speaking && (
-        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-      )}
+      <div className="absolute -bottom-1 -right-1 bg-black px-1.5 rounded-full text-xs border border-purple-500/50">
+        {currentStage}
+      </div>
     </div>
   );
 };

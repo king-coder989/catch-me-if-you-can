@@ -22,6 +22,8 @@ interface GameContextType {
   doorResults: (DoorResult | null)[];
   doubtLevel: number;
   message: string;
+  aiMessage: string; // Added for EnhancedAIMessage
+  currentStage: number; // Added for AIAvatar
   isNewStage: boolean;
   isProcessing: boolean;
   isGameOver: boolean;
@@ -37,6 +39,8 @@ interface GameContextType {
     switchedDoors: number;
     timesFooled: number;
     gamesPlayed: number;
+    currentWinStreak: number; // Added for EnhancedAIMessage
+    currentLossStreak: number; // Added for EnhancedAIMessage
   };
   peekingDoor: number | null;
   selectDoor: (doorIndex: number) => void;
@@ -45,6 +49,7 @@ interface GameContextType {
   continueGame: () => void;
   useDesperationMove: (move: DesperationMove, doorIndex?: number) => void;
   updateAIMessage: (message: string) => void;
+  setAIMessage: (message: string) => void; // Added for EnhancedAIMessage
 }
 
 // Create the context with default values
@@ -56,6 +61,8 @@ const GameContext = createContext<GameContextType>({
   doorResults: [null, null, null],
   doubtLevel: 50,
   message: '',
+  aiMessage: '', // Added
+  currentStage: 1, // Added
   isNewStage: true,
   isProcessing: false,
   isGameOver: false,
@@ -71,6 +78,8 @@ const GameContext = createContext<GameContextType>({
     switchedDoors: 0,
     timesFooled: 0,
     gamesPlayed: 0,
+    currentWinStreak: 0, // Added
+    currentLossStreak: 0, // Added
   },
   peekingDoor: null,
   selectDoor: () => {},
@@ -79,6 +88,7 @@ const GameContext = createContext<GameContextType>({
   continueGame: () => {},
   useDesperationMove: () => {},
   updateAIMessage: () => {},
+  setAIMessage: () => {}, // Added
 });
 
 // Custom hook to use the game context
@@ -136,6 +146,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [doorResults, setDoorResults] = useState<(DoorResult | null)[]>([null, null, null]);
   const [doubtLevel, setDoubtLevel] = useState<number>(50); // 0-100: 0 = complete distrust, 100 = complete trust
   const [message, setMessage] = useState<string>('');
+  const [aiMessage, setAIMessage] = useState<string>(''); // Added for AI message
   const [isNewStage, setIsNewStage] = useState<boolean>(true);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isGameOver, setIsGameOver] = useState<boolean>(false);
@@ -151,9 +162,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     switchedDoors: 0,
     timesFooled: 0,
     gamesPlayed: 0,
+    currentWinStreak: 0, // Added for win streak
+    currentLossStreak: 0, // Added for loss streak
   });
   const [peekingDoor, setPeekingDoor] = useState<number | null>(null);
   const [lastWin, setLastWin] = useState<boolean>(false);
+  const currentStage = stage; // Added for AIAvatar
   
   // Load game history on initial render
   useEffect(() => {
@@ -187,6 +201,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Update message when AI provides a new one
   const updateAIMessage = (newMessage: string) => {
     setMessage(newMessage);
+    setAIMessage(newMessage); // Update both for compatibility
   };
   
   // Decision logic - gets more manipulative as game progresses
@@ -301,6 +316,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.error("Wrong door!");
     }
     
+    // Update win/loss streaks in gameHistory
+    if (isWinner) {
+      setGameHistory(prev => ({
+        ...prev,
+        currentWinStreak: prev.currentWinStreak + 1,
+        currentLossStreak: 0,
+      }));
+    } else {
+      setGameHistory(prev => ({
+        ...prev,
+        currentLossStreak: prev.currentLossStreak + 1,
+        currentWinStreak: 0,
+      }));
+    }
+    
     // Check for game over condition
     if (stage >= 15) {
       setTimeout(() => {
@@ -378,6 +408,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setGameHistory(prev => ({
       ...prev,
       gamesPlayed: prev.gamesPlayed + 1,
+      currentWinStreak: 0,
+      currentLossStreak: 0,
     }));
     
     // Fake reset (keep old data in localStorage)
@@ -416,6 +448,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     doorResults,
     doubtLevel,
     message,
+    aiMessage, // Added
+    currentStage, // Added
     isNewStage,
     isProcessing,
     isGameOver,
@@ -430,7 +464,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     resetGame,
     continueGame,
     useDesperationMove,
-    updateAIMessage
+    updateAIMessage,
+    setAIMessage, // Added
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

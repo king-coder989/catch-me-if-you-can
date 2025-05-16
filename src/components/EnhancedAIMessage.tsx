@@ -1,143 +1,128 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGame } from '@/contexts/GameContext';
-import { generateAIHint } from '@/lib/ai-integration';
-import AIAvatar from './AIAvatar';
-import { Volume2, VolumeX } from 'lucide-react';
-import { Button } from './ui/button';
+import { Card } from '@/components/ui/card';
+import AudioPlayer from './AudioPlayer';
+import { buildPrompt } from '@/lib/ai-utils';
 
 const EnhancedAIMessage = () => {
   const { 
     aiMessage, 
     setAIMessage, 
     currentStage, 
-    doorResults, 
-    isNewStage, 
-    gameHistory
+    aiPersonality, 
+    gameHistory,
+    consecutiveWins,
+    consecutiveLosses
   } = useGame();
   
   const [isLoading, setIsLoading] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [audioEnabled, setAudioEnabled] = useState(true);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Generate a new AI message when necessary
+  
+  // Generate AI message using our utility and API key
   useEffect(() => {
-    const fetchAIMessage = async () => {
-      // Only fetch when needed (new stage or door selected)
-      if (isNewStage || doorResults.some(result => result !== null)) {
+    const apiKey = "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";
+    let isMounted = true;
+    
+    const generateMessage = async () => {
+      try {
         setIsLoading(true);
         
-        try {
-          // Convert door results to history format
-          const history = doorResults.map((result, index) => 
-            result !== null ? `Door ${index + 1}: ${result ? 'Win' : 'Loss'}` : ''
-          ).filter(Boolean);
-          
-          // Get player stats
-          const stats = {
-            winStreak: gameHistory.currentWinStreak,
-            lossStreak: gameHistory.currentLossStreak
-          };
-          
-          // Generate AI hint with audio if enabled
-          const response = await generateAIHint(
-            currentStage,
-            history,
-            stats,
-            audioEnabled
-          );
-          
-          setAIMessage(response.message);
-          
-          // Play audio if available
-          if (response.audio && audioEnabled) {
-            playAudio(response.audio);
-          }
-        } catch (error) {
-          console.error("Failed to get AI message:", error);
-          setAIMessage("I'm watching your choices carefully...");
-        } finally {
+        // Build the prompt using our PromptComposer utility
+        const doorSelections = gameHistory.doorSelections; 
+        const doorChoices = doorSelections.map((count, index) => {
+          return count > 0 ? `Door ${index + 1}: ${count} times` : null;
+        }).filter(Boolean);
+        
+        const stats = {
+          winStreak: gameHistory.currentWinStreak || consecutiveWins,
+          lossStreak: gameHistory.currentLossStreak || consecutiveLosses
+        };
+        
+        const prompt = buildPrompt(
+          currentStage, 
+          doorChoices, 
+          stats
+        );
+        
+        const response = await fetch("https://api.groq.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: "mixtral-8x7b-32768",
+            messages: [
+              {
+                role: "system",
+                content: prompt
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 80
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const message = data.choices[0].message.content.trim();
+        
+        if (isMounted) {
+          setAIMessage(message);
+        }
+      } catch (error) {
+        console.error("Error generating AI message:", error);
+        
+        // Fallback messages based on stage and personality
+        let fallbackMessage = "Hmm, which door will you choose?";
+        
+        if (currentStage <= 3) {
+          fallbackMessage = "I'm here to help you choose. Trust me...";
+        } else if (currentStage <= 7) {
+          fallbackMessage = "The middle door looks promising today.";
+        } else if (currentStage <= 12) {
+          fallbackMessage = "Your patterns are... interesting. Try door 3.";
+        } else {
+          fallbackMessage = "You've come so far. Would be a shame to lose now.";
+        }
+        
+        if (isMounted) {
+          setAIMessage(fallbackMessage);
+        }
+      } finally {
+        if (isMounted) {
           setIsLoading(false);
         }
       }
     };
-
-    fetchAIMessage();
-  }, [isNewStage, doorResults, currentStage, setAIMessage]);
-
-  // Function to play audio
-  const playAudio = (audioContent: string) => {
-    if (!audioEnabled) return;
     
-    setIsSpeaking(true);
-    
-    // In a real implementation, you would play the audio from the API
-    // For now, we'll use the browser's speech synthesis
-    const speech = new SpeechSynthesisUtterance(aiMessage);
-    speech.onend = () => setIsSpeaking(false);
-    
-    window.speechSynthesis.cancel(); // Cancel any ongoing speech
-    window.speechSynthesis.speak(speech);
-  };
-  
-  // Toggle audio
-  const toggleAudio = () => {
-    if (isSpeaking) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
+    if (currentStage && !aiMessage) {
+      generateMessage();
     }
-    setAudioEnabled(!audioEnabled);
-  };
+    
+    return () => { isMounted = false; };
+  }, [currentStage, setAIMessage, aiPersonality]);
   
-  // Play current message
-  const speakCurrentMessage = () => {
-    if (!aiMessage || isSpeaking) return;
-    playAudio(aiMessage);
-  };
+  if (isLoading) {
+    return (
+      <Card className="p-4 bg-purple-900/10 border-purple-500/30">
+        <p className="text-sm italic text-gray-400">AI grandmother is thinking...</p>
+      </Card>
+    );
+  }
 
   return (
-    <div className="w-full max-w-lg mx-auto mb-8">
-      <div className="flex items-start space-x-4 bg-black/40 p-4 rounded-lg backdrop-blur-sm border border-purple-500/30">
-        <AIAvatar speaking={isSpeaking} />
-        
-        <div className="flex-1">
-          <div className="min-h-[80px] relative">
-            {isLoading ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse delay-75"></div>
-                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse delay-150"></div>
-              </div>
-            ) : (
-              <p className="italic text-lg">{aiMessage}</p>
-            )}
-          </div>
-          
-          <div className="flex justify-end mt-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleAudio}
-              className="text-gray-400 hover:text-white"
-            >
-              {audioEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-            </Button>
-            
-            {audioEnabled && !isSpeaking && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={speakCurrentMessage}
-                className="text-gray-400 hover:text-white"
-              >
-                Play
-              </Button>
-            )}
-          </div>
+    <Card className="p-4 bg-purple-900/10 border-purple-500/30 relative">
+      <div className="flex justify-between items-start">
+        <p className="text-md">{aiMessage || "Choose a door..."}</p>
+        <div className="ml-2">
+          <AudioPlayer text={aiMessage || "Choose a door..."} autoPlay={true} />
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
