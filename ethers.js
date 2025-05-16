@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 // Replace this with your actual deployed contract address
-const CONTRACT_ADDRESS = "0xYourContractAddressHere";
+const CONTRACT_ADDRESS = "0xd9145CCE52D386f254917e481eB44e9943F39138";
 
 // ABI: must match the deployed smart contract functions
 const ABI = [{
