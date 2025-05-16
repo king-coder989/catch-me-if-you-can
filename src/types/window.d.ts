@@ -1,4 +1,7 @@
 
 interface Window {
-  ethereum?: any;
+  ethereum: {
+    isMetaMask?: boolean;
+    request: (request: { method: string; params?: any[] }) => Promise<any>;
+  };
 }

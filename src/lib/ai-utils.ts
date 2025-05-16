@@ -37,6 +37,8 @@ export async function fetchAIResponse(
   prompt: string
 ): Promise<string> {
   try {
+    console.log("Sending prompt to Groq API:", prompt);
+    
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -52,20 +54,27 @@ export async function fetchAIResponse(
           }
         ],
         temperature: 0.7,
-        max_tokens: 256
+        max_tokens: 100
       }),
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to get AI response");
+      const errorData = await response.text();
+      console.error("Groq API error response:", errorData);
+      throw new Error(`Failed to get AI response: ${response.status}`);
     }
 
     const data = await response.json();
-    return data.choices[0].message.content;
+    console.log("Groq API response:", data);
+    
+    if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+      return data.choices[0].message.content;
+    } else {
+      throw new Error("Invalid response structure from Groq API");
+    }
   } catch (error) {
     console.error("AI response error:", error);
-    return getFallbackMessage(1, 'trickster'); // Default fallback
+    return getFallbackMessage(1, 'trickster');
   }
 }
 
@@ -102,29 +111,4 @@ export function getFallbackMessage(stage: number, personality: AIPersonalityType
   else {
     return "So close to the end. Do you really think you'll make it?";
   }
-}
-
-/**
- * Convert text to speech using Groq API
- */
-export async function textToSpeech(text: string, apiKey: string): Promise<Blob> {
-  const response = await fetch("https://api.groq.com/openai/v1/audio/speech", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: "whisper-1",
-      input: text,
-      voice: "fable", // Female voice for AI grandmother
-    }),
-  });
-  
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to generate speech");
-  }
-
-  return await response.blob();
 }

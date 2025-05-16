@@ -45,10 +45,10 @@ const AIMessage: React.FC = () => {
   const getMessageStyle = () => {
     // Base stage style
     const stageStyle = 
-      stageType === 'early' ? 'bg-stage-early-bg text-stage-early-text' :
-      stageType === 'middle' ? 'bg-stage-middle-bg text-stage-middle-text' :
+      stageType === 'early' ? 'bg-stage-early-bg text-white' :
+      stageType === 'middle' ? 'bg-stage-middle-bg text-white' :
       stageType === 'late' ? 'bg-stage-late-bg text-white' :
-      'bg-black text-stage-final-text border-purple-500';
+      'bg-black text-white border-purple-500';
       
     // Personality style additions
     const personalityStyle =
@@ -61,7 +61,7 @@ const AIMessage: React.FC = () => {
   
   // Apply different effects based on AI personality
   const getTextEffectClass = () => {
-    const baseClass = "text-lg";
+    const baseClass = "text-lg text-white";
     
     if (stageType === 'late' || stageType === 'final') {
       return cn(baseClass, "glitch");

@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { Card } from '@/components/ui/card';
 import AudioPlayer from './AudioPlayer';
-import { buildPrompt } from '@/lib/ai-utils';
+import { buildPrompt } from '@/lib/PromptComposer';
+import { GROQ_API_KEY } from '@/lib/api-config';
 
 const EnhancedAIMessage = () => {
   const { 
@@ -20,7 +21,7 @@ const EnhancedAIMessage = () => {
   
   // Generate AI message using our utility and API key
   useEffect(() => {
-    const apiKey = "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";
+    const apiKey = GROQ_API_KEY;
     let isMounted = true;
     
     const generateMessage = async () => {
@@ -31,18 +32,20 @@ const EnhancedAIMessage = () => {
         const doorSelections = gameHistory.doorSelections; 
         const doorChoices = doorSelections.map((count, index) => {
           return count > 0 ? `Door ${index + 1}: ${count} times` : null;
-        }).filter(Boolean);
+        }).filter(Boolean) as string[];
         
         const stats = {
-          winStreak: gameHistory.currentWinStreak || consecutiveWins,
-          lossStreak: gameHistory.currentLossStreak || consecutiveLosses
+          winStreak: consecutiveWins || 0,
+          lossStreak: consecutiveLosses || 0
         };
         
         const prompt = buildPrompt(
-          currentStage, 
+          currentStage || 1, 
           doorChoices, 
           stats
         );
+        
+        console.log("Sending prompt to Groq API:", prompt);
         
         const response = await fetch("https://api.groq.com/v1/chat/completions", {
           method: "POST",
@@ -64,14 +67,23 @@ const EnhancedAIMessage = () => {
         });
         
         if (!response.ok) {
+          console.error(`API request failed with status ${response.status}`);
+          const errorText = await response.text();
+          console.error("Error details:", errorText);
           throw new Error(`API request failed with status ${response.status}`);
         }
         
         const data = await response.json();
-        const message = data.choices[0].message.content.trim();
+        console.log("Groq API response:", data);
         
-        if (isMounted) {
-          setAIMessage(message);
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+          const message = data.choices[0].message.content.trim();
+          
+          if (isMounted) {
+            setAIMessage(message);
+          }
+        } else {
+          throw new Error("Unexpected API response format");
         }
       } catch (error) {
         console.error("Error generating AI message:", error);
@@ -104,7 +116,7 @@ const EnhancedAIMessage = () => {
     }
     
     return () => { isMounted = false; };
-  }, [currentStage, setAIMessage, aiPersonality]);
+  }, [currentStage, setAIMessage, aiPersonality, aiMessage, gameHistory, consecutiveWins, consecutiveLosses]);
   
   if (isLoading) {
     return (
@@ -117,7 +129,7 @@ const EnhancedAIMessage = () => {
   return (
     <Card className="p-4 bg-purple-900/10 border-purple-500/30 relative">
       <div className="flex justify-between items-start">
-        <p className="text-md">{aiMessage || "Choose a door..."}</p>
+        <p className="text-md text-white">{aiMessage || "Choose a door..."}</p>
         <div className="ml-2">
           <AudioPlayer text={aiMessage || "Choose a door..."} autoPlay={true} />
         </div>
