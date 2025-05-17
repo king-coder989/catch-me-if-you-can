@@ -1,4 +1,3 @@
-
 import { buildPrompt as composerBuildPrompt } from './PromptComposer';
 
 // Define types for AI integrations
@@ -29,6 +28,9 @@ export function getAIAvatar(personality: AIPersonalityType, stageType: GameStage
   return avatarPath;
 }
 
+// Keep track of conversation history
+const conversationHistory: { role: string, content: string }[] = [];
+
 /**
  * Fetch a response from the AI based on the current game state
  */
@@ -39,6 +41,15 @@ export async function fetchAIResponse(
     const apiKey = "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";
     console.log("Sending prompt to Groq API:", prompt);
     
+    // Add system prompt to history if it's the first message
+    if (conversationHistory.length === 0) {
+      conversationHistory.push({ role: "system", content: prompt });
+    } else {
+      // Add user message to history
+      conversationHistory.push({ role: "user", content: prompt });
+    }
+    
+    // Send the full conversation history to maintain context
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -47,12 +58,7 @@ export async function fetchAIResponse(
       },
       body: JSON.stringify({
         model: "mixtral-8x7b-32768",
-        messages: [
-          { 
-            "role": "system", 
-            "content": prompt 
-          }
-        ],
+        messages: conversationHistory,
         temperature: 0.7,
         max_tokens: 100
       }),
@@ -68,7 +74,17 @@ export async function fetchAIResponse(
     console.log("Groq API response:", data);
     
     if (data.choices && data.choices.length > 0 && data.choices[0].message) {
-      return data.choices[0].message.content;
+      const aiResponse = data.choices[0].message.content;
+      
+      // Add AI response to conversation history
+      conversationHistory.push({ role: "assistant", content: aiResponse });
+      
+      // Keep conversation history manageable (last 10 messages)
+      if (conversationHistory.length > 11) { // System prompt + 5 exchanges
+        conversationHistory.splice(1, 2); // Remove oldest exchange (user + assistant)
+      }
+      
+      return aiResponse;
     } else {
       throw new Error("Invalid response structure from Groq API");
     }

@@ -159,9 +159,9 @@ const Game: React.FC = () => {
           aiPersonality === 'manipulator' ? "bg-purple-200 text-purple-800" :
           "bg-red-200 text-red-800"
         )}>
-          {aiPersonality === 'trickster' ? "Trickster Mode" :
-           aiPersonality === 'manipulator' ? "Manipulator Mode" :
-           "Psycho Mode"}
+          {aiPersonality === 'trickster' ? "Mind Engineer" :
+           aiPersonality === 'manipulator' ? "Mind Manipulator" :
+           "Mind Reaper"}
         </div>
 
         {/* AI Message with Avatar */}
@@ -271,7 +271,7 @@ const Game: React.FC = () => {
             )}
           >
             <Book size={16} className="mr-2" />
-            Granny's Notebook
+            Mind-Engineer's Notes
           </Button>
         )}
       </div>

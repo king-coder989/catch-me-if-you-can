@@ -1,107 +1,125 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+ 
 @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
+ 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
+ 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
+ 
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
-
+ 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-
+ 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
+ 
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
+ 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
+ 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
-
+ 
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
-
+ 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
+ 
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
+ 
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
+ 
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
+ 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
+ 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
+ 
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
+ 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
+ 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
-
+ 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
   }
 }
 
-/* Text shadow for better readability on all screens */
+/* Global text shadows for better contrast */
 .text-shadow {
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.75);
+  text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8), 
+               0px 0px 15px rgba(0, 0, 0, 0.5);
 }
 
+.landing-text {
+  text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8),
+               0px 0px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Animation for glitchy UI effects */
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+    filter: hue-rotate(0deg);
+  }
+  20% {
+    transform: translate(-2px, 1px);
+    filter: hue-rotate(20deg);
+  }
+  40% {
+    transform: translate(2px, -1px);
+    filter: hue-rotate(-20deg);
+  }
+  60% {
+    transform: translate(0);
+    filter: hue-rotate(0deg);
+  }
+  80% {
+    transform: translate(1px, -1px);
+    filter: hue-rotate(10deg);
+  }
+  100% {
+    transform: translate(0);
+    filter: hue-rotate(0deg);
+  }
+}
+
+.animate-glitch {
+  animation: glitch 0.3s infinite;
+}
+
+/* Apply glitch effect to text with data-text attribute */
 .glitch {
   position: relative;
 }
@@ -114,104 +132,71 @@
   left: 0;
   width: 100%;
   height: 100%;
+  opacity: 0.8;
 }
 
 .glitch::before {
-  left: 2px;
-  text-shadow: -1px 0 red;
-  animation: glitch-animation 2s infinite linear alternate-reverse;
+  color: #ff0000;
+  animation: glitch-anim 0.4s infinite;
+  clip: rect(0, 900px, 0, 0);
 }
 
 .glitch::after {
-  left: -2px;
-  text-shadow: 1px 0 blue;
-  animation: glitch-animation 3s infinite linear alternate-reverse;
+  color: #0000ff;
+  animation: glitch-anim2 0.3s infinite;
+  clip: rect(0, 900px, 0, 0);
 }
 
-@keyframes glitch-animation {
+@keyframes glitch-anim {
   0% {
-    clip-path: inset(29% 0 25% 0);
-  }
-  5% {
-    clip-path: inset(9% 0 38% 0);
-  }
-  10% {
-    clip-path: inset(96% 0 1% 0);
-  }
-  15% {
-    clip-path: inset(75% 0 23% 0);
+    clip: rect(77px, 9999px, 54px, 0);
+    transform: translate(-2px, -3px);
   }
   20% {
-    clip-path: inset(46% 0 50% 0);
-  }
-  25% {
-    clip-path: inset(3% 0 46% 0);
-  }
-  30% {
-    clip-path: inset(82% 0 2% 0);
-  }
-  35% {
-    clip-path: inset(88% 0 1% 0);
+    clip: rect(58px, 9999px, 71px, 0);
+    transform: translate(3px, 2px);
   }
   40% {
-    clip-path: inset(91% 0 8% 0);
-  }
-  45% {
-    clip-path: inset(96% 0 2% 0);
-  }
-  50% {
-    clip-path: inset(59% 0 38% 0);
-  }
-  55% {
-    clip-path: inset(41% 0 53% 0);
+    clip: rect(16px, 9999px, 35px, 0);
+    transform: translate(-4px, 4px);
   }
   60% {
-    clip-path: inset(21% 0 47% 0);
-  }
-  65% {
-    clip-path: inset(89% 0 8% 0);
-  }
-  70% {
-    clip-path: inset(1% 0 95% 0);
-  }
-  75% {
-    clip-path: inset(86% 0 4% 0);
+    clip: rect(89px, 9999px, 9px, 0);
+    transform: translate(4px, -7px);
   }
   80% {
-    clip-path: inset(95% 0 5% 0);
-  }
-  85% {
-    clip-path: inset(54% 0 36% 0);
-  }
-  90% {
-    clip-path: inset(70% 0 27% 0);
-  }
-  95% {
-    clip-path: inset(6% 0 93% 0);
+    clip: rect(28px, 9999px, 69px, 0);
+    transform: translate(-3px, 6px);
   }
   100% {
-    clip-path: inset(57% 0 43% 0);
+    clip: rect(77px, 9999px, 54px, 0);
+    transform: translate(-2px, -3px);
   }
 }
 
-.door-container {
-  perspective: 1000px;
-}
-
-.door {
-  transform-origin: left;
-  transform-style: preserve-3d;
-  transition: transform 0.3s ease;
-  backface-visibility: visible;
-  min-height: 200px;
-}
-
-.door-content {
-  backface-visibility: hidden;
-  transform: rotateY(180deg);
-}
-
-/* Improve landing page readability */
-.landing-text {
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.75);
+@keyframes glitch-anim2 {
+  0% {
+    clip: rect(82px, 9999px, 41px, 0);
+    transform: translate(4px, 5px);
+  }
+  20% {
+    clip: rect(35px, 9999px, 92px, 0);
+    transform: translate(-6px, -1px);
+  }
+  40% {
+    clip: rect(68px, 9999px, 14px, 0);
+    transform: translate(6px, -7px);
+  }
+  60% {
+    clip: rect(4px, 9999px, 82px, 0);
+    transform: translate(-3px, 5px);
+  }
+  80% {
+    clip: rect(67px, 9999px, 23px, 0);
+    transform: translate(2px, -2px);
+  }
+  100% {
+    clip: rect(82px, 9999px, 41px, 0);
+    transform: translate(4px, 5px);
+  }
 }

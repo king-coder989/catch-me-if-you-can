@@ -11,10 +11,13 @@ const Landing = () => {
         {/* Hero Section */}
         <div className="flex flex-col items-center justify-center min-h-[80vh] text-center">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
-            <span className="text-purple-400">Door</span> of <span className="text-purple-400">Illusions</span>
+            <span className="text-purple-400">Catch Me</span> If You <span className="text-purple-400">Can</span>
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-2xl animate-fade-in text-gray-100 landing-text">
-            A psychological game of deception and intuition. Can you outsmart the AI grandmother?
+          <p className="text-xl md:text-2xl mb-3 max-w-2xl animate-fade-in text-white font-semibold landing-text">
+            <span className="text-purple-300">Door of Illusions</span>
+          </p>
+          <p className="text-lg md:text-xl mb-8 max-w-2xl animate-fade-in text-gray-100 landing-text bg-black/30 p-4 rounded-lg shadow-inner">
+            A psychological game of deception and intuition. Can you outsmart the mind-engineered threat?
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Link to="/game">
@@ -37,17 +40,17 @@ const Landing = () => {
 
         {/* Features Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 my-16">
-          <div className="bg-purple-900/50 p-6 rounded-lg border border-purple-500/30">
+          <div className="bg-black/80 p-6 rounded-lg border border-purple-500/30 shadow-lg">
             <h3 className="text-xl font-bold mb-3 text-purple-300">Psychological Challenge</h3>
-            <p className="text-gray-200 landing-text">Test your ability to read deception and make decisions under pressure.</p>
+            <p className="text-white landing-text">Test your ability to read deception and make decisions under pressure.</p>
           </div>
-          <div className="bg-purple-900/50 p-6 rounded-lg border border-purple-500/30">
-            <h3 className="text-xl font-bold mb-3 text-purple-300">AI Opponent</h3>
-            <p className="text-gray-200 landing-text">Face off against an advanced AI that adapts to your playing style.</p>
+          <div className="bg-black/80 p-6 rounded-lg border border-purple-500/30 shadow-lg">
+            <h3 className="text-xl font-bold mb-3 text-purple-300">Mind Engineer</h3>
+            <p className="text-white landing-text">Face off against an advanced AI that adapts to your playing style.</p>
           </div>
-          <div className="bg-purple-900/50 p-6 rounded-lg border border-purple-500/30">
+          <div className="bg-black/80 p-6 rounded-lg border border-purple-500/30 shadow-lg">
             <h3 className="text-xl font-bold mb-3 text-purple-300">Earn Rewards</h3>
-            <p className="text-gray-200 landing-text">Win badges and climb the leaderboard as you progress through the stages.</p>
+            <p className="text-white landing-text">Win badges and climb the leaderboard as you progress through the stages.</p>
           </div>
         </div>
       </div>

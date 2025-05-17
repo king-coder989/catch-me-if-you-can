@@ -12,11 +12,11 @@ const AIMessage: React.FC = () => {
   
   const getInitialGreeting = () => {
     if (aiPersonality === 'trickster') {
-      return "Feeling lucky today? Let's see if the doors agree with you...";
+      return "Welcome to Catch Me If You Can... I wonder if your mind is sharp enough?";
     } else if (aiPersonality === 'manipulator') {
-      return "I know exactly which door you should choose. Trust me?";
+      return "The game is simple. Your mind against mine. Choose wisely...";
     } else {
-      return "Choose wisely... or don't. Either way, I'll enjoy watching.";
+      return "Let's see how long you last before breaking. Choose a door to begin...";
     }
   };
   
@@ -62,8 +62,8 @@ const AIMessage: React.FC = () => {
   const getMessageStyle = () => {
     // Base stage style
     const stageStyle = 
-      stageType === 'early' ? 'bg-blue-500 bg-opacity-90 text-white' :
-      stageType === 'middle' ? 'bg-purple-500 bg-opacity-90 text-white' :
+      stageType === 'early' ? 'bg-blue-900 bg-opacity-90 text-white' :
+      stageType === 'middle' ? 'bg-purple-900 bg-opacity-90 text-white' :
       stageType === 'late' ? 'bg-purple-900 bg-opacity-90 text-white' :
       'bg-black text-white border-purple-500';
       
@@ -78,7 +78,7 @@ const AIMessage: React.FC = () => {
   
   // Apply different effects based on AI personality
   const getTextEffectClass = () => {
-    const baseClass = "text-lg text-white";
+    const baseClass = "text-lg text-white text-shadow";
     
     if (stageType === 'late' || stageType === 'final') {
       return cn(baseClass, "glitch");
@@ -101,6 +101,9 @@ const AIMessage: React.FC = () => {
         <p 
           className={getTextEffectClass()}
           data-text={displayText}
+          style={{
+            textShadow: "0 0 5px rgba(255,255,255,0.5)"
+          }}
         >
           {displayText}
           <span className={cn(

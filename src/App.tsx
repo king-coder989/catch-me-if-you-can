@@ -12,7 +12,7 @@ import About from "./pages/About";
 import Careers from "./pages/Careers";
 import Profile from "./pages/Profile";
 import Leaderboard from "./pages/Leaderboard";
-import Auth from "./pages/Auth";
+import AuthPage from "./pages/Auth";
 import { GameProvider } from "./contexts/GameContext";
 
 const queryClient = new QueryClient();
@@ -30,7 +30,7 @@ const App = () => (
             <Route path="/careers" element={<Careers />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth" element={<AuthPage />} />
             <Route 
               path="/game" 
               element={
