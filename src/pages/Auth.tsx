@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -132,12 +133,18 @@ const Auth = () => {
       
       // Redirect after successful signup
       setTimeout(() => {
-        toast.success("Sign up successful!");
+        toast({
+          title: "Sign up successful!"
+        });
         navigate(redirectTo);
       }, 1500);
     } catch (error) {
       console.error("Sign up error:", error);
-      toast.error("Failed to sign up. Please try again later.");
+      toast({
+        title: "Failed to sign up",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -170,12 +177,18 @@ const Auth = () => {
       
       // Redirect after successful signin
       setTimeout(() => {
-        toast.success("Sign in successful!");
+        toast({
+          title: "Sign in successful!"
+        });
         navigate(redirectTo);
       }, 1500);
     } catch (error) {
       console.error("Sign in error:", error);
-      toast.error("Failed to sign in. Please check your credentials and try again.");
+      toast({
+        title: "Failed to sign in",
+        description: "Please check your credentials and try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
