@@ -12,7 +12,7 @@ const MainLayout = () => {
       <header className="py-4 px-6 border-b border-purple-900/30 bg-black/80 backdrop-blur-sm fixed w-full z-10">
         <div className="container mx-auto flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold text-white">
-            <span className="text-purple-400">Door</span> of <span className="text-purple-400">Illusions</span>
+            <span className="text-purple-400">Catch</span> Me If <span className="text-purple-400">You Can</span>
           </Link>
           
           <NavigationMenu>
@@ -24,22 +24,22 @@ const MainLayout = () => {
                 <NavigationMenuContent className="bg-black/95 border border-purple-900">
                   <div className="grid w-[300px] gap-2 p-4">
                     <NavigationMenuLink asChild>
-                      <Link to="/" className="block p-2 hover:bg-purple-900/30 rounded">Home</Link>
+                      <Link to="/" className="block p-2 hover:bg-purple-900/30 rounded text-white">Home</Link>
                     </NavigationMenuLink>
                     <NavigationMenuLink asChild>
-                      <Link to="/game" className="block p-2 hover:bg-purple-900/30 rounded">Play Game</Link>
+                      <Link to="/game" className="block p-2 hover:bg-purple-900/30 rounded text-white">Play Game</Link>
                     </NavigationMenuLink>
                     <NavigationMenuLink asChild>
-                      <Link to="/about" className="block p-2 hover:bg-purple-900/30 rounded">About</Link>
+                      <Link to="/about" className="block p-2 hover:bg-purple-900/30 rounded text-white">About</Link>
                     </NavigationMenuLink>
                     <NavigationMenuLink asChild>
-                      <Link to="/careers" className="block p-2 hover:bg-purple-900/30 rounded">Careers</Link>
+                      <Link to="/careers" className="block p-2 hover:bg-purple-900/30 rounded text-white">Careers</Link>
                     </NavigationMenuLink>
                     <NavigationMenuLink asChild>
-                      <Link to="/profile" className="block p-2 hover:bg-purple-900/30 rounded">Profile</Link>
+                      <Link to="/profile" className="block p-2 hover:bg-purple-900/30 rounded text-white">Profile</Link>
                     </NavigationMenuLink>
                     <NavigationMenuLink asChild>
-                      <Link to="/leaderboard" className="block p-2 hover:bg-purple-900/30 rounded">Leaderboard</Link>
+                      <Link to="/leaderboard" className="block p-2 hover:bg-purple-900/30 rounded text-white">Leaderboard</Link>
                     </NavigationMenuLink>
                   </div>
                 </NavigationMenuContent>

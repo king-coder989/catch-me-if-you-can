@@ -22,14 +22,15 @@ interface GameContextType {
   doorResults: (DoorResult | null)[];
   doubtLevel: number;
   message: string;
-  aiMessage: string; // Added for EnhancedAIMessage
-  currentStage: number; // Added for AIAvatar
+  aiMessage: string;
+  currentStage: number;
   isNewStage: boolean;
   isProcessing: boolean;
   isGameOver: boolean;
   consecutiveWins: number;
   consecutiveLosses: number;
   aiPersonality: AIPersonality;
+  lives: number; // Added lives property
   availableDesperationMoves: {
     peek: boolean;
     beg: boolean;
@@ -39,8 +40,8 @@ interface GameContextType {
     switchedDoors: number;
     timesFooled: number;
     gamesPlayed: number;
-    currentWinStreak: number; // Added for EnhancedAIMessage
-    currentLossStreak: number; // Added for EnhancedAIMessage
+    currentWinStreak: number;
+    currentLossStreak: number;
   };
   peekingDoor: number | null;
   selectDoor: (doorIndex: number) => void;
@@ -49,7 +50,7 @@ interface GameContextType {
   continueGame: () => void;
   useDesperationMove: (move: DesperationMove, doorIndex?: number) => void;
   updateAIMessage: (message: string) => void;
-  setAIMessage: (message: string) => void; // Added for EnhancedAIMessage
+  setAIMessage: (message: string) => void;
 }
 
 // Create the context with default values
@@ -61,25 +62,26 @@ const GameContext = createContext<GameContextType>({
   doorResults: [null, null, null],
   doubtLevel: 50,
   message: '',
-  aiMessage: '', // Added
-  currentStage: 1, // Added
+  aiMessage: '',
+  currentStage: 1,
   isNewStage: true,
   isProcessing: false,
   isGameOver: false,
   consecutiveWins: 0,
   consecutiveLosses: 0,
   aiPersonality: 'trickster',
+  lives: 3, // Starting with 3 lives
   availableDesperationMoves: {
-    peek: true,
-    beg: true,
+    peek: false, // Start with no desperation moves (will be randomly enabled)
+    beg: false,
   },
   gameHistory: {
     doorSelections: [0, 0, 0],
     switchedDoors: 0,
     timesFooled: 0,
     gamesPlayed: 0,
-    currentWinStreak: 0, // Added
-    currentLossStreak: 0, // Added
+    currentWinStreak: 0,
+    currentLossStreak: 0,
   },
   peekingDoor: null,
   selectDoor: () => {},
@@ -88,7 +90,7 @@ const GameContext = createContext<GameContextType>({
   continueGame: () => {},
   useDesperationMove: () => {},
   updateAIMessage: () => {},
-  setAIMessage: () => {}, // Added
+  setAIMessage: () => {},
 });
 
 // Custom hook to use the game context
@@ -144,30 +146,31 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [wins, setWins] = useState<number>(0);
   const [losses, setLosses] = useState<number>(0);
   const [doorResults, setDoorResults] = useState<(DoorResult | null)[]>([null, null, null]);
-  const [doubtLevel, setDoubtLevel] = useState<number>(50); // 0-100: 0 = complete distrust, 100 = complete trust
+  const [doubtLevel, setDoubtLevel] = useState<number>(50);
   const [message, setMessage] = useState<string>('');
-  const [aiMessage, setAIMessage] = useState<string>(''); // Added for AI message
+  const [aiMessage, setAIMessage] = useState<string>('');
   const [isNewStage, setIsNewStage] = useState<boolean>(true);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isGameOver, setIsGameOver] = useState<boolean>(false);
   const [consecutiveWins, setConsecutiveWins] = useState<number>(0);
   const [consecutiveLosses, setConsecutiveLosses] = useState<number>(0);
   const [aiPersonality, setAIPersonality] = useState<AIPersonality>('trickster');
+  const [lives, setLives] = useState<number>(3); // Player starts with 3 lives
   const [availableDesperationMoves, setAvailableDesperationMoves] = useState({
-    peek: true,
-    beg: true,
+    peek: false, // Start with abilities disabled (will be randomly enabled)
+    beg: false,
   });
   const [gameHistory, setGameHistory] = useState({
     doorSelections: [0, 0, 0],
     switchedDoors: 0,
     timesFooled: 0,
     gamesPlayed: 0,
-    currentWinStreak: 0, // Added for win streak
-    currentLossStreak: 0, // Added for loss streak
+    currentWinStreak: 0,
+    currentLossStreak: 0,
   });
   const [peekingDoor, setPeekingDoor] = useState<number | null>(null);
   const [lastWin, setLastWin] = useState<boolean>(false);
-  const currentStage = stage; // Added for AIAvatar
+  const currentStage = stage;
   
   // Load game history on initial render
   useEffect(() => {
@@ -197,15 +200,38 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return () => clearTimeout(timer);
     }
   }, [lastWin]);
+
+  // Randomly enable desperation moves
+  useEffect(() => {
+    // Each stage has a chance to enable peek or beg
+    if (isNewStage && !isGameOver) {
+      // Peek has a 30% chance per stage
+      if (Math.random() < 0.3) {
+        setAvailableDesperationMoves(prev => ({ ...prev, peek: true }));
+        setTimeout(() => {
+          toast.info("You sense a weakness... Peek is now available.", { duration: 3000 });
+        }, 1500);
+      }
+      
+      // Beg has a 20% chance per stage
+      if (Math.random() < 0.2) {
+        setAvailableDesperationMoves(prev => ({ ...prev, beg: true }));
+        setTimeout(() => {
+          toast.info("The AI seems sympathetic... Beg for Mercy is now available.", { duration: 3000 });
+        }, 2500);
+      }
+    }
+  }, [isNewStage, stage, isGameOver]);
   
   // Update message when AI provides a new one
   const updateAIMessage = (newMessage: string) => {
     setMessage(newMessage);
-    setAIMessage(newMessage); // Update both for compatibility
+    setAIMessage(newMessage);
   };
   
   // Decision logic - gets more manipulative as game progresses
   const determineWinningDoor = (doorIndex: number): boolean => {
+    
     // Player used "Beg" desperation move and it worked (50% chance)
     if (Math.random() < 0.5 && !availableDesperationMoves.beg) {
       setAvailableDesperationMoves(prev => ({ ...prev, beg: true }));
@@ -296,7 +322,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     newDoorResults[doorIndex] = isWinner ? 'win' : 'lose';
     setDoorResults(newDoorResults);
     
-    // Update wins/losses
+    // Update wins/losses and lives
     if (isWinner) {
       setWins(wins + 1);
       setConsecutiveWins(consecutiveWins + 1);
@@ -305,15 +331,37 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLastWin(true); // Mark for auto-progression
       
       // Replenish peek ability when winning (as a reward)
-      if (!availableDesperationMoves.peek) {
+      if (!availableDesperationMoves.peek && Math.random() < 0.4) {
         setAvailableDesperationMoves(prev => ({ ...prev, peek: true }));
-        toast.info("You've earned another peek!");
+        toast.info("You've earned a peek ability!");
+      }
+      
+      // Randomly restore a life (20% chance)
+      if (lives < 3 && Math.random() < 0.2) {
+        setLives(lives + 1);
+        toast.success("You gained a life!");
       }
     } else {
       setLosses(losses + 1);
       setConsecutiveLosses(consecutiveLosses + 1);
       setConsecutiveWins(0);
       toast.error("Wrong door!");
+      
+      // Lose a life when selecting the wrong door
+      if (lives > 0) {
+        setLives(lives - 1);
+        if (lives === 1) {
+          toast.error("This is your last life!");
+        }
+      }
+      
+      // Game over when out of lives
+      if (lives <= 1) {
+        setTimeout(() => {
+          toast.error("Game Over - You're out of lives!");
+          resetGame();
+        }, 1500);
+      }
     }
     
     // Update win/loss streaks in gameHistory
@@ -392,14 +440,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsNewStage(true);
     setPeekingDoor(null);
     
-    // Reset desperation moves for the next stage
-    if (stage % 5 === 0) {
-      setAvailableDesperationMoves({
-        peek: true,
-        beg: true,
-      });
-      toast.info("Desperation moves replenished!");
-    }
+    // Reset desperation moves for the next stage (now handled by random chance each stage)
+    setAvailableDesperationMoves({
+      peek: false,
+      beg: false,
+    });
   };
 
   // Reset the game
@@ -423,9 +468,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsGameOver(false);
     setConsecutiveWins(0);
     setConsecutiveLosses(0);
+    setLives(3); // Reset lives to 3
     setAvailableDesperationMoves({
-      peek: true,
-      beg: true,
+      peek: false,
+      beg: false,
     });
     setPeekingDoor(null);
     setLastWin(false);
@@ -448,14 +494,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     doorResults,
     doubtLevel,
     message,
-    aiMessage, // Added
-    currentStage, // Added
+    aiMessage,
+    currentStage,
     isNewStage,
     isProcessing,
     isGameOver,
     consecutiveWins,
     consecutiveLosses,
     aiPersonality,
+    lives, // Added to the value object
     availableDesperationMoves,
     gameHistory,
     peekingDoor,
@@ -465,7 +512,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     continueGame,
     useDesperationMove,
     updateAIMessage,
-    setAIMessage, // Added
+    setAIMessage,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

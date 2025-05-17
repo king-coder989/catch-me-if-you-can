@@ -12,7 +12,8 @@ import {
   Eye, 
   HandHelping, 
   RefreshCw,
-  Book
+  Book,
+  Heart
 } from 'lucide-react';
 import AIDiary from './AIDiary';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -32,18 +33,41 @@ const Game: React.FC = () => {
     aiPersonality,
     doubtLevel,
     consecutiveLosses,
-    updateAIMessage
+    updateAIMessage,
+    lives
   } = useGame();
   
   const [showDiary, setShowDiary] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ top: '90%', left: '80%' });
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string>("/images/backgrounds/stage1.png");
+  const [floatingPeekEnabled, setFloatingPeekEnabled] = useState(false);
+  const [peekPosition, setPeekPosition] = useState({ x: 0, y: 0 });
+  const [selectedPeekDoor, setSelectedPeekDoor] = useState<number | null>(null);
 
   // Update background image when stage changes
   useEffect(() => {
     setBackgroundImage(getBackgroundImage(stage));
   }, [stage]);
+
+  // Randomly enable floating peek ability
+  useEffect(() => {
+    if (availableDesperationMoves.peek && Math.random() < 0.3 && !floatingPeekEnabled) {
+      setTimeout(() => {
+        setFloatingPeekEnabled(true);
+        
+        // Random position
+        const x = Math.floor(Math.random() * 70) + 10; // 10-80% of viewport width
+        const y = Math.floor(Math.random() * 50) + 20; // 20-70% of viewport height
+        setPeekPosition({ x, y });
+        
+        // Auto-disable after a while if not used
+        setTimeout(() => {
+          setFloatingPeekEnabled(false);
+        }, 15000); // 15 seconds
+      }, Math.random() * 10000 + 5000); // Random delay between 5-15 seconds after stage loads
+    }
+  }, [stage, isNewStage, availableDesperationMoves.peek]);
 
   // 🚀 Fetch Groq AI response when needed
   useEffect(() => {
@@ -128,6 +152,13 @@ const Game: React.FC = () => {
     }
   };
 
+  // Handle floating peek ability
+  const handleFloatingPeek = (doorIndex: number) => {
+    setSelectedPeekDoor(doorIndex);
+    useDesperationMove('peek', doorIndex);
+    setFloatingPeekEnabled(false);
+  };
+
   // Determine if a door has been selected
   const isDoorSelected = doorResults.some(door => door !== null);
   
@@ -151,6 +182,17 @@ const Game: React.FC = () => {
       <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
         {/* Game stats */}
         <GameStats />
+
+        {/* Lives Display */}
+        <div className="flex items-center gap-1 mb-3">
+          {[...Array(3)].map((_, idx) => (
+            <Heart 
+              key={idx} 
+              size={24}
+              className={idx < lives ? "text-red-500 fill-red-500" : "text-gray-500"}
+            />
+          ))}
+        </div>
 
         {/* AI Personality Indicator */}
         <div className={cn(
@@ -183,6 +225,35 @@ const Game: React.FC = () => {
           </div>
         </div>
 
+        {/* Floating peek ability */}
+        {floatingPeekEnabled && (
+          <div 
+            className="fixed z-20 animate-floating"
+            style={{
+              top: `${peekPosition.y}%`,
+              left: `${peekPosition.x}%`
+            }}
+          >
+            <div className="bg-purple-800/80 backdrop-blur-sm rounded-lg p-3 border border-purple-500 shadow-lg animate-pulse">
+              <div className="text-white text-center mb-2 text-sm">
+                Peek Opportunity!
+              </div>
+              <div className="flex gap-2">
+                {[0, 1, 2].map((doorIdx) => (
+                  <Button
+                    key={doorIdx}
+                    size="sm"
+                    onClick={() => handleFloatingPeek(doorIdx)}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Eye className="w-3 h-3 mr-1" /> Door {doorIdx + 1}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Doors */}
         <div className="flex justify-center items-center my-10 w-full">
           <Door index={0} />
@@ -190,72 +261,76 @@ const Game: React.FC = () => {
           <Door index={2} />
         </div>
 
-        {/* Desperation moves */}
-        <div className="flex justify-center gap-4 mb-4 flex-wrap">
-          <Button
-            onClick={() => useDesperationMove('peek', 0)}
-            disabled={!availableDesperationMoves.peek || isDoorSelected}
-            className={cn(
-              "relative",
-              availableDesperationMoves.peek ? "opacity-100" : "opacity-50",
-              stageType === 'early' ? "bg-blue-500 hover:bg-blue-600" : 
-              stageType === 'middle' ? "bg-purple-500 hover:bg-purple-600" : 
-              stageType === 'late' ? "bg-gray-700 hover:bg-gray-800" :
-              "bg-purple-800 hover:bg-purple-900"
+        {/* Desperation moves - only show when the AI randomly decides to give them */}
+        {availableDesperationMoves.peek || availableDesperationMoves.beg ? (
+          <div className="flex justify-center gap-4 mb-4 flex-wrap">
+            {availableDesperationMoves.peek && (
+              <>
+                <Button
+                  onClick={() => useDesperationMove('peek', 0)}
+                  disabled={isDoorSelected}
+                  className={cn(
+                    "relative",
+                    stageType === 'early' ? "bg-blue-500 hover:bg-blue-600" : 
+                    stageType === 'middle' ? "bg-purple-500 hover:bg-purple-600" : 
+                    stageType === 'late' ? "bg-gray-700 hover:bg-gray-800" :
+                    "bg-purple-800 hover:bg-purple-900"
+                  )}
+                >
+                  <Eye className="mr-2" size={16} />
+                  Peek Door 1
+                </Button>
+                
+                <Button
+                  onClick={() => useDesperationMove('peek', 1)}
+                  disabled={isDoorSelected}
+                  className={cn(
+                    "relative",
+                    stageType === 'early' ? "bg-blue-500 hover:bg-blue-600" : 
+                    stageType === 'middle' ? "bg-purple-500 hover:bg-purple-600" : 
+                    stageType === 'late' ? "bg-gray-700 hover:bg-gray-800" :
+                    "bg-purple-800 hover:bg-purple-900"
+                  )}
+                >
+                  <Eye className="mr-2" size={16} />
+                  Peek Door 2
+                </Button>
+                
+                <Button
+                  onClick={() => useDesperationMove('peek', 2)}
+                  disabled={isDoorSelected}
+                  className={cn(
+                    "relative",
+                    stageType === 'early' ? "bg-blue-500 hover:bg-blue-600" : 
+                    stageType === 'middle' ? "bg-purple-500 hover:bg-purple-600" : 
+                    stageType === 'late' ? "bg-gray-700 hover:bg-gray-800" :
+                    "bg-purple-800 hover:bg-purple-900"
+                  )}
+                >
+                  <Eye className="mr-2" size={16} />
+                  Peek Door 3
+                </Button>
+              </>
             )}
-          >
-            <Eye className="mr-2" size={16} />
-            Peek Door 1
-          </Button>
-          
-          <Button
-            onClick={() => useDesperationMove('peek', 1)}
-            disabled={!availableDesperationMoves.peek || isDoorSelected}
-            className={cn(
-              "relative",
-              availableDesperationMoves.peek ? "opacity-100" : "opacity-50",
-              stageType === 'early' ? "bg-blue-500 hover:bg-blue-600" : 
-              stageType === 'middle' ? "bg-purple-500 hover:bg-purple-600" : 
-              stageType === 'late' ? "bg-gray-700 hover:bg-gray-800" :
-              "bg-purple-800 hover:bg-purple-900"
+            
+            {availableDesperationMoves.beg && (
+              <Button
+                onClick={() => useDesperationMove('beg')}
+                disabled={isDoorSelected}
+                className={cn(
+                  "relative",
+                  stageType === 'early' ? "bg-blue-500 hover:bg-blue-600" : 
+                  stageType === 'middle' ? "bg-purple-500 hover:bg-purple-600" : 
+                  stageType === 'late' ? "bg-gray-700 hover:bg-gray-800" :
+                  "bg-purple-800 hover:bg-purple-900"
+                )}
+              >
+                <HandHelping className="mr-2" size={16} />
+                Beg For Mercy
+              </Button>
             )}
-          >
-            <Eye className="mr-2" size={16} />
-            Peek Door 2
-          </Button>
-          
-          <Button
-            onClick={() => useDesperationMove('peek', 2)}
-            disabled={!availableDesperationMoves.peek || isDoorSelected}
-            className={cn(
-              "relative",
-              availableDesperationMoves.peek ? "opacity-100" : "opacity-50",
-              stageType === 'early' ? "bg-blue-500 hover:bg-blue-600" : 
-              stageType === 'middle' ? "bg-purple-500 hover:bg-purple-600" : 
-              stageType === 'late' ? "bg-gray-700 hover:bg-gray-800" :
-              "bg-purple-800 hover:bg-purple-900"
-            )}
-          >
-            <Eye className="mr-2" size={16} />
-            Peek Door 3
-          </Button>
-          
-          <Button
-            onClick={() => useDesperationMove('beg')}
-            disabled={!availableDesperationMoves.beg || isDoorSelected}
-            className={cn(
-              "relative",
-              availableDesperationMoves.beg ? "opacity-100" : "opacity-50",
-              stageType === 'early' ? "bg-blue-500 hover:bg-blue-600" : 
-              stageType === 'middle' ? "bg-purple-500 hover:bg-purple-600" : 
-              stageType === 'late' ? "bg-gray-700 hover:bg-gray-800" :
-              "bg-purple-800 hover:bg-purple-900"
-            )}
-          >
-            <HandHelping className="mr-2" size={16} />
-            Beg For Mercy
-          </Button>
-        </div>
+          </div>
+        ) : null}
 
         {/* Diary Button (shows after 5 games) */}
         {shouldShowDiaryOption && (

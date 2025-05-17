@@ -12,7 +12,7 @@ const Careers = () => {
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Join <span className="text-purple-400">Our Team</span>
           </h1>
-          <p className="text-lg text-purple-300">Door of Illusions</p>
+          <p className="text-lg text-purple-300">Catch Me If You Can</p>
         </div>
         
         <div className="max-w-2xl mx-auto">
@@ -22,7 +22,7 @@ const Careers = () => {
                 We're a team of hackathon enthusiasts building psychological gaming experiences that challenge the mind. 
                 "Catch Me If You Can" started as a weekend project and is growing into something bigger. 
                 Whether you're a developer, designer, or have a psychology background, we'd love to explore 
-                collaboration opportunities for future hackathons or projects.
+                collaboration opportunities for future hackathons or group projects.
               </p>
               
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4">

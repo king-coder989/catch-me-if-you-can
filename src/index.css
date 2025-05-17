@@ -256,3 +256,31 @@
 .door-container {
   perspective: 1000px;
 }
+
+/* Floating animations for dynamic peek ability */
+@keyframes floating {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-floating {
+  animation: floating 3s ease-in-out infinite;
+}
+
+/* Improved text contrast for dark theme */
+.text-contrast-high {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* Improved dropdown menu contrast */
+.dropdown-menu-high-contrast {
+  background-color: rgba(30, 30, 40, 0.95);
+  border: 1px solid rgba(128, 90, 213, 0.3);
+}
