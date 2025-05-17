@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';   
 import { useGame } from '../contexts/GameContext';
 import Door from './Door';

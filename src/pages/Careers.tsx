@@ -12,6 +12,7 @@ const Careers = () => {
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Join <span className="text-purple-400">Our Team</span>
           </h1>
+          <p className="text-lg text-purple-300">Door of Illusions</p>
         </div>
         
         <div className="max-w-2xl mx-auto">

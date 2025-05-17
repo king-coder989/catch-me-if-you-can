@@ -129,21 +129,6 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
         toast.success("Sign up successful!");
         navigate(redirectTo);
       }, 1500);
-
-      // In a real app, you'd use Supabase or another auth provider:
-      // const { error } = await supabase.auth.signUp({
-      //   email,
-      //   password,
-      //   options: {
-      //     data: {
-      //       date_of_birth: dateOfBirth,
-      //       gender,
-      //       wallet_address: walletAddress
-      //     }
-      //   }
-      // });
-      // 
-      // if (error) throw error;
     } catch (error) {
       console.error("Sign up error:", error);
       toast.error("Failed to sign up. Please try again later.");
@@ -184,14 +169,6 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
         toast.success("Sign in successful!");
         navigate(redirectTo);
       }, 1500);
-
-      // In a real app, you'd use Supabase or another auth provider:
-      // const { error } = await supabase.auth.signInWithPassword({
-      //   email,
-      //   password,
-      // });
-      // 
-      // if (error) throw error;
     } catch (error) {
       console.error("Sign in error:", error);
       toast.error("Failed to sign in. Please check your credentials and try again.");
