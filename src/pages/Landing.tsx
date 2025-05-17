@@ -20,7 +20,7 @@ const Landing = () => {
             A psychological game of deception and intuition. Can you outsmart the mind-engineered threat?
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/game">
+            <Link to="/auth">
               <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white font-bold">
                 Play Now <ArrowRight className="ml-2" size={18} />
               </Button>

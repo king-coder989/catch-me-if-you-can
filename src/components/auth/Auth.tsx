@@ -18,7 +18,7 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [age, setAge] = useState<number | "">("");
+  const [dateOfBirth, setDateOfBirth] = useState<string>("");
   const [gender, setGender] = useState<string>("");
   const [walletAddress, setWalletAddress] = useState<string>("");
   const [isConnecting, setIsConnecting] = useState(false);
@@ -26,8 +26,20 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
   
   const navigate = useNavigate();
 
-  const isValidAge = (age: number | "") => {
-    return typeof age === "number" && age >= 16;
+  const calculateAge = (dob: string): number => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const isOldEnough = (dob: string): boolean => {
+    const age = calculateAge(dob);
+    return age >= 16;
   };
 
   const isValidEmail = (email: string) => {
@@ -67,37 +79,52 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
       // Validate form inputs
       if (!isValidEmail(email)) {
         toast.error("Please enter a valid email address.");
+        setIsSubmitting(false);
         return;
       }
 
       if (!isValidPassword(password)) {
         toast.error("Password must be at least 6 characters long.");
+        setIsSubmitting(false);
         return;
       }
 
       if (password !== confirmPassword) {
         toast.error("Passwords do not match.");
+        setIsSubmitting(false);
         return;
       }
 
-      if (!isValidAge(age as number)) {
+      if (!dateOfBirth) {
+        toast.error("Please enter your date of birth.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!isOldEnough(dateOfBirth)) {
         toast.error("You must be at least 16 years old to sign up.");
+        setIsSubmitting(false);
         return;
       }
 
       if (!gender) {
         toast.error("Please select your gender.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!walletAddress) {
+        toast.error("MetaMask wallet connection is mandatory. Please connect your wallet to continue.");
+        setIsSubmitting(false);
         return;
       }
 
       // For demo purposes, we'll just simulate success
       setTimeout(() => {
         localStorage.setItem("user_email", email);
-        localStorage.setItem("user_age", String(age));
+        localStorage.setItem("user_dob", dateOfBirth);
         localStorage.setItem("user_gender", gender);
-        if (walletAddress) {
-          localStorage.setItem("wallet_address", walletAddress);
-        }
+        localStorage.setItem("wallet_address", walletAddress);
         
         toast.success("Sign up successful!");
         navigate(redirectTo);
@@ -109,9 +136,9 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
       //   password,
       //   options: {
       //     data: {
-      //       age,
+      //       date_of_birth: dateOfBirth,
       //       gender,
-      //       wallet_address: walletAddress || null
+      //       wallet_address: walletAddress
       //     }
       //   }
       // });
@@ -133,17 +160,26 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
       // Validate form inputs
       if (!isValidEmail(email)) {
         toast.error("Please enter a valid email address.");
+        setIsSubmitting(false);
         return;
       }
 
       if (!isValidPassword(password)) {
         toast.error("Password must be at least 6 characters long.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!walletAddress) {
+        toast.error("MetaMask wallet connection is mandatory. Please connect your wallet to continue.");
+        setIsSubmitting(false);
         return;
       }
 
       // For demo purposes, we'll just simulate success
       setTimeout(() => {
         localStorage.setItem("user_email", email);
+        localStorage.setItem("wallet_address", walletAddress);
         
         toast.success("Sign in successful!");
         navigate(redirectTo);
@@ -170,7 +206,7 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center text-purple-400">Account Access</CardTitle>
           <CardDescription className="text-center text-gray-300">
-            Sign in or create an account to play Door of Illusions
+            Sign in or create an account to play Catch Me If You Can
           </CardDescription>
         </CardHeader>
         <Tabs defaultValue="signup" className="w-full">
@@ -219,16 +255,14 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="age">Age</Label>
+                  <Label htmlFor="date-of-birth">Date of Birth</Label>
                   <Input 
-                    id="age" 
-                    type="number" 
-                    min="1"
-                    max="120"
-                    placeholder="Enter your age" 
-                    value={age}
-                    onChange={(e) => setAge(e.target.value ? parseInt(e.target.value) : "")}
+                    id="date-of-birth" 
+                    type="date" 
+                    value={dateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
                     required
+                    max={new Date().toISOString().split('T')[0]}
                   />
                   <p className="text-xs text-red-400">You must be at least 16 years old to play.</p>
                 </div>
@@ -252,7 +286,7 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Wallet (Optional)</Label>
+                  <Label>MetaMask Wallet <span className="text-red-400">*</span></Label>
                   {walletAddress ? (
                     <div className="p-2 bg-purple-900/20 border border-purple-500/30 rounded-md overflow-hidden">
                       <p className="text-sm text-gray-300 truncate">{walletAddress}</p>
@@ -268,7 +302,7 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
                       {isConnecting ? "Connecting..." : "Connect MetaMask Wallet"}
                     </Button>
                   )}
-                  <p className="text-xs text-gray-400">Connect your wallet to track achievements on-chain</p>
+                  <p className="text-xs text-red-400">MetaMask wallet is required to track achievements on-chain</p>
                 </div>
               </CardContent>
               
@@ -276,7 +310,7 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
                 <Button 
                   type="submit" 
                   className="w-full bg-purple-600 hover:bg-purple-700" 
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !walletAddress}
                 >
                   {isSubmitting ? "Creating Account..." : "Create Account"}
                 </Button>
@@ -312,7 +346,7 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Wallet (Optional)</Label>
+                  <Label>MetaMask Wallet <span className="text-red-400">*</span></Label>
                   {walletAddress ? (
                     <div className="p-2 bg-purple-900/20 border border-purple-500/30 rounded-md overflow-hidden">
                       <p className="text-sm text-gray-300 truncate">{walletAddress}</p>
@@ -328,6 +362,7 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
                       {isConnecting ? "Connecting..." : "Connect MetaMask Wallet"}
                     </Button>
                   )}
+                  <p className="text-xs text-red-400">MetaMask wallet is required to access your game progress</p>
                 </div>
               </CardContent>
               
@@ -335,7 +370,7 @@ const Auth: React.FC<AuthProps> = ({ redirectTo = "/game" }) => {
                 <Button 
                   type="submit" 
                   className="w-full bg-purple-600 hover:bg-purple-700" 
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !walletAddress}
                 >
                   {isSubmitting ? "Signing In..." : "Sign In"}
                 </Button>

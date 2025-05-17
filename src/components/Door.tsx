@@ -27,7 +27,9 @@ const Door: React.FC<DoorProps> = ({ index }) => {
       return cn(
         baseStyles,
         "door animate-door-open",
-        doorResults[index] === 'win' ? "bg-green-600 border-green-400" : "bg-red-600 border-red-400"
+        doorResults[index] === 'win' 
+          ? "bg-green-700 border-green-500 text-white" 
+          : "bg-red-700 border-red-500 text-white"
       );
     }
     
@@ -39,8 +41,8 @@ const Door: React.FC<DoorProps> = ({ index }) => {
         "door animate-door-peek",
         // AI might lie based on personality
         aiPersonality === 'manipulator' && Math.random() < 0.3 
-          ? "bg-red-600 border-red-400" 
-          : "bg-green-600 border-green-400"
+          ? "bg-red-700 border-red-500" 
+          : "bg-green-700 border-green-500"
       );
     }
     
@@ -50,12 +52,12 @@ const Door: React.FC<DoorProps> = ({ index }) => {
       "door cursor-pointer",
       isHovering && !isProcessing ? "animate-door-hover" : "",
       stageType === 'early' 
-        ? "bg-blue-600 hover:bg-blue-500 border-blue-400" :
+        ? "bg-blue-700 hover:bg-blue-600 border-blue-500 text-white" :
       stageType === 'middle' 
-        ? "bg-purple-600 hover:bg-purple-500 border-purple-400" :
+        ? "bg-purple-700 hover:bg-purple-600 border-purple-500 text-white" :
       stageType === 'late' 
-        ? "bg-purple-800 hover:bg-purple-700 border-purple-500" :
-      "bg-purple-900 hover:bg-purple-800 border-purple-600",
+        ? "bg-purple-800 hover:bg-purple-700 border-purple-600 text-white" :
+      "bg-purple-900 hover:bg-purple-800 border-purple-700 text-white",
     );
   };
   
@@ -99,6 +101,9 @@ const Door: React.FC<DoorProps> = ({ index }) => {
       onClick={handleClick}
     >
       <div className={getDoorStyle()}>
+        {/* Door frame */}
+        <div className="absolute inset-0 border-4 border-amber-900 opacity-30 pointer-events-none"></div>
+        
         <div className="absolute inset-0 flex items-center justify-center">
           {doorResults[index] === null ? (
             <DoorClosed 

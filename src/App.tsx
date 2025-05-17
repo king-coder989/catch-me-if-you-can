@@ -21,7 +21,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <Sonner />
+      <Sonner theme="dark" toastOptions={{
+        style: {
+          background: 'rgba(0,0,0,0.9)',
+          color: '#ffffff',
+          border: '1px solid rgba(139, 92, 246, 0.3)'
+        }
+      }} />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<MainLayout />}>

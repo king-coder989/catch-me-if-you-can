@@ -12,11 +12,11 @@ const AIMessage: React.FC = () => {
   
   const getInitialGreeting = () => {
     if (aiPersonality === 'trickster') {
-      return "Welcome to Catch Me If You Can... I wonder if your mind is sharp enough?";
+      return "Trust me, I'm here to help you win...";
     } else if (aiPersonality === 'manipulator') {
-      return "The game is simple. Your mind against mine. Choose wisely...";
+      return "Choose wisely. Your mind against mine...";
     } else {
-      return "Let's see how long you last before breaking. Choose a door to begin...";
+      return "Let's see how long you last before breaking...";
     }
   };
   
@@ -62,18 +62,18 @@ const AIMessage: React.FC = () => {
   const getMessageStyle = () => {
     // Base stage style
     const stageStyle = 
-      stageType === 'early' ? 'bg-blue-900 bg-opacity-90 text-white' :
-      stageType === 'middle' ? 'bg-purple-900 bg-opacity-90 text-white' :
-      stageType === 'late' ? 'bg-purple-900 bg-opacity-90 text-white' :
-      'bg-black text-white border-purple-500';
+      stageType === 'early' ? 'bg-blue-900/90 text-white' :
+      stageType === 'middle' ? 'bg-purple-900/90 text-white' :
+      stageType === 'late' ? 'bg-purple-900/90 text-white' :
+      'bg-black text-white';
       
     // Personality style additions
     const personalityStyle =
-      aiPersonality === 'trickster' ? 'border-blue-300' :
-      aiPersonality === 'manipulator' ? 'border-purple-400' :
-      'border-red-500'; // psycho
+      aiPersonality === 'trickster' ? 'border-blue-400 border-2' :
+      aiPersonality === 'manipulator' ? 'border-purple-500 border-2' :
+      'border-red-600 border-2'; // psycho
       
-    return cn(stageStyle, personalityStyle, "border-2");
+    return cn(stageStyle, personalityStyle);
   };
   
   // Apply different effects based on AI personality
@@ -102,7 +102,7 @@ const AIMessage: React.FC = () => {
           className={getTextEffectClass()}
           data-text={displayText}
           style={{
-            textShadow: "0 0 5px rgba(255,255,255,0.5)"
+            textShadow: "0 0 8px rgba(255,255,255,0.5)"
           }}
         >
           {displayText}
