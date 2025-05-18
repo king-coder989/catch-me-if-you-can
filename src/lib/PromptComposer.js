@@ -26,7 +26,37 @@ const PSYCH_TRICKS = {
 };
 
 /**
+ * Dynamic prompt engineering for calculated manipulation scaling
+ * Solution for "2. Static Stage Prompts" issue
+ * @param {number} stage - Current game stage (1-15)
+ * @returns {string} - Base prompt strategy for this stage
+ */
+function getStagePromptStrategy(stage) {
+  // Calculate manipulation intensity (20% at stage 1, up to 100% by stage 15)
+  const manipulationIntensity = Math.min(20 + (stage * 5.3), 100);
+  
+  let basePrompt = `You are a mentor in a psychological game. Current stage: ${stage}.\n`;
+  basePrompt += `Your manipulation intensity: ${manipulationIntensity.toFixed(0)}%.\n`;
+  
+  // Add manipulation tactics based on stage
+  if (stage <= 3) {
+    basePrompt += "Use these tactics: Subtle Encouragement | Gentle Misdirection | Hidden Patterns\n";
+  } else if (stage <= 6) {
+    basePrompt += "Use these tactics: False Familiarity | Mixed Signals | Confusing Certainty\n";
+  } else if (stage <= 9) {
+    basePrompt += "Use these tactics: Gaslighting | False Concern | Strategic Misdirection\n";
+  } else if (stage <= 12) {
+    basePrompt += "Use these tactics: Sunk Cost Fallacy | Self-doubt Induction | Pattern Breaking\n";
+  } else {
+    basePrompt += "Use these tactics: Total Reality Distortion | Integrity Breakdown | Existential Doubt\n";
+  }
+  
+  return basePrompt;
+}
+
+/**
  * Builds the system prompt for Groq based on game state.
+ * Enhanced with dynamic prompt engineering and psychological tactics.
  * @param {number} stage - Current game stage (1-15).
  * @param {string[]} history - Array of player's past choices.
  * @param {object} stats - Object with winStreak and lossStreak.
@@ -41,21 +71,32 @@ export function buildPrompt(stage, history = [], stats = { winStreak: 0, lossStr
   else if (stage <= 12) templateKey = 'panic';
   else templateKey = 'villain';
 
-  let prompt = TEMPLATES[templateKey]
+  // Start with the dynamic stage strategy (2. Static Stage Prompts fix)
+  let prompt = getStagePromptStrategy(stage);
+  
+  // Add the template content
+  prompt += TEMPLATES[templateKey]
     .replace('{stage}', stage)
     .replace('{history}', history.join(', ') || 'none');
 
-  // Inject streak modifiers
+  // Inject streak modifiers with stronger emotions
   if (stats.winStreak >= 2) {
-    prompt += ' Player feels confident; bait them into overconfidence.';
+    prompt += ' Player feels confident; bait them into overconfidence and create false security.';
   }
   if (stats.lossStreak >= 2) {
-    prompt += ' Player is frustrated; tease them lightly.';
+    prompt += ' Player is frustrated; play on their emotions and increase doubt in their abilities.';
   }
 
   // Inject psychological tactic
   if (PSYCH_TRICKS[stage]) {
     prompt += ` Psychological tactic: ${PSYCH_TRICKS[stage]}`;
+  }
+  
+  // Add player vulnerability targeting (3. Player State Integration fix)
+  if (stats.lossStreak > stats.winStreak) {
+    prompt += " Target their vulnerability: self-doubt. Suggest they might not be capable.";
+  } else {
+    prompt += " Target their vulnerability: overconfidence. Set them up for failure.";
   }
 
   // Append global rules

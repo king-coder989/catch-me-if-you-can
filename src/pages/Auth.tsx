@@ -10,13 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { MetaMaskIcon } from '@/components/auth/MetaMaskIcon';
 
-// Define ethereum interface for window
+// Add window.ethereum to TypeScript
 declare global {
   interface Window {
-    ethereum?: {
-      isMetaMask?: boolean;
-      request: (options: { method: string; params?: any[] }) => Promise<any>;
-    }
+    ethereum?: any;
   }
 }
 
@@ -30,7 +27,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [isOfAge, setIsOfAge] = useState(true);
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -39,7 +36,7 @@ const Auth = () => {
   const redirectTo = location.state?.from?.pathname || '/game';
 
   // Calculate if user is of legal age (18+)
-  const checkAge = (birthDate: string) => {
+  const checkAge = (birthDate: string): boolean => {
     if (!birthDate) return false;
     
     const today = new Date();
@@ -69,13 +66,11 @@ const Auth = () => {
       });
       return;
     }
-
+    
     try {
       setIsLoading(true);
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts'
-      });
-
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      
       if (accounts.length > 0) {
         setWalletAddress(accounts[0]);
         setIsWalletConnected(true);
@@ -119,13 +114,13 @@ const Auth = () => {
       });
       return;
     }
-
+    
     try {
       setIsLoading(true);
-      
       // Simulate signup process (normally would interact with backend)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       
+      // Success message
       toast({
         title: "Account Created!",
         description: "Your account has been successfully created."
@@ -133,16 +128,12 @@ const Auth = () => {
       
       // Redirect after successful signup
       setTimeout(() => {
-        toast({
-          title: "Sign up successful!"
-        });
         navigate(redirectTo);
       }, 1500);
     } catch (error) {
       console.error("Sign up error:", error);
       toast({
-        title: "Failed to sign up",
-        description: "Please try again later.",
+        description: "Failed to sign up. Please try again later.",
         variant: "destructive"
       });
     } finally {
@@ -163,13 +154,13 @@ const Auth = () => {
       });
       return;
     }
-
+    
     try {
       setIsLoading(true);
-      
       // Simulate signin process (normally would interact with backend)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       
+      // Success message
       toast({
         title: "Welcome Back!",
         description: "You have been successfully logged in."
@@ -177,16 +168,12 @@ const Auth = () => {
       
       // Redirect after successful signin
       setTimeout(() => {
-        toast({
-          title: "Sign in successful!"
-        });
         navigate(redirectTo);
       }, 1500);
     } catch (error) {
       console.error("Sign in error:", error);
       toast({
-        title: "Failed to sign in",
-        description: "Please check your credentials and try again.",
+        description: "Failed to sign in. Please check your credentials and try again.",
         variant: "destructive"
       });
     } finally {
@@ -213,7 +200,7 @@ const Auth = () => {
               </p>
               <Button 
                 onClick={connectWallet} 
-                disabled={isLoading}
+                disabled={isLoading} 
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white"
               >
                 <MetaMaskIcon className="mr-2 h-5 w-5" />
@@ -226,35 +213,33 @@ const Auth = () => {
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
-              
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
-                    <Input
-                      id="signin-email"
-                      type="email"
-                      placeholder="your@email.com"
+                    <Label htmlFor="email-signin">Email</Label>
+                    <Input 
+                      id="email-signin" 
+                      type="email" 
+                      placeholder="your@email.com" 
+                      required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="bg-purple-950/30 border-purple-500/30"
+                      className="bg-gray-800 border-gray-700 text-white"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      placeholder="••••••••"
+                    <Label htmlFor="password-signin">Password</Label>
+                    <Input 
+                      id="password-signin" 
+                      type="password" 
+                      required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="bg-purple-950/30 border-purple-500/30"
+                      className="bg-gray-800 border-gray-700 text-white"
                     />
                   </div>
-                  
                   <div className="pt-2">
+                    <p className="text-xs text-gray-400 mb-2">Connected wallet: {walletAddress.substring(0, 6)}...{walletAddress.substring(walletAddress.length - 4)}</p>
                     <Button 
                       type="submit" 
                       className="w-full bg-purple-600 hover:bg-purple-700"
@@ -265,52 +250,53 @@ const Auth = () => {
                   </div>
                 </form>
               </TabsContent>
-              
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="your@email.com"
+                    <Label htmlFor="email-signup">Email</Label>
+                    <Input 
+                      id="email-signup" 
+                      type="email" 
+                      placeholder="your@email.com" 
+                      required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="bg-purple-950/30 border-purple-500/30"
+                      className="bg-gray-800 border-gray-700 text-white"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
+                    <Label htmlFor="password-signup">Password</Label>
+                    <Input 
+                      id="password-signup" 
+                      type="password" 
+                      required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="bg-purple-950/30 border-purple-500/30"
+                      className="bg-gray-800 border-gray-700 text-white"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="date-of-birth">Date of Birth <span className="text-xs text-red-400">(18+ required)</span></Label>
-                    <Input
-                      id="date-of-birth"
-                      type="date"
+                    <Label htmlFor="dob">Date of Birth</Label>
+                    <Input 
+                      id="dob" 
+                      type="date" 
+                      required
                       value={dateOfBirth}
                       onChange={(e) => setDateOfBirth(e.target.value)}
-                      required
-                      className="bg-purple-950/30 border-purple-500/30"
+                      className="bg-gray-800 border-gray-700 text-white"
                     />
                     {!isOfAge && dateOfBirth && (
-                      <p className="text-sm text-red-400 mt-1">You must be 18 or older to play.</p>
+                      <p className="text-xs text-red-500">You must be 18 or older to use this application.</p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="gender">Gender (Optional)</Label>
-                    <Select value={gender} onValueChange={setGender}>
-                      <SelectTrigger className="bg-purple-950/30 border-purple-500/30">
-                        <SelectValue placeholder="Select gender" />
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select 
+                      value={gender} 
+                      onValueChange={(value) => setGender(value)}
+                    >
+                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                        <SelectValue placeholder="Select your gender" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="male">Male</SelectItem>
@@ -320,8 +306,8 @@ const Auth = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  
                   <div className="pt-2">
+                    <p className="text-xs text-gray-400 mb-2">Connected wallet: {walletAddress.substring(0, 6)}...{walletAddress.substring(walletAddress.length - 4)}</p>
                     <Button 
                       type="submit" 
                       className="w-full bg-purple-600 hover:bg-purple-700"
@@ -335,13 +321,10 @@ const Auth = () => {
             </Tabs>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
-          <div className="text-xs text-purple-300 text-center w-full">
-            By signing in, you agree to our <a href="#" className="text-purple-400 hover:underline">Terms of Service</a> and <a href="#" className="text-purple-400 hover:underline">Privacy Policy</a>.
-          </div>
-          <div className="text-xs text-purple-300 text-center w-full">
-            <span className="text-red-400">Age Restriction:</span> This game is for adults 18 and older.
-          </div>
+        <CardFooter>
+          <p className="text-xs text-center w-full text-gray-400">
+            By connecting your wallet, you agree to our Terms of Service and Privacy Policy.
+          </p>
         </CardFooter>
       </Card>
     </div>

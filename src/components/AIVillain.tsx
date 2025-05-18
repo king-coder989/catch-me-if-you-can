@@ -51,7 +51,7 @@ const AIVillain: React.FC<AIVillainProps> = ({ className }) => {
       className
     )}>
       <img 
-        src="/lovable-uploads/8af5f5eb-9a6a-40c5-b9a2-fd9c679a370b.png"
+        src="/lovable-uploads/789a9274-1cb7-4401-a48f-e0481d3e13c9.png"
         alt="AI Villain"
         className={cn(
           "w-24 h-24 md:w-32 md:h-32 object-cover rounded-full border-2",
