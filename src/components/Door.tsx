@@ -20,7 +20,7 @@ const Door: React.FC<DoorProps> = ({ index }) => {
   
   // Determine door appearance based on stage
   const getDoorStyle = () => {
-    const baseStyles = "transition-all duration-300 flex flex-col items-center justify-center border-2 relative overflow-hidden";
+    const baseStyles = "transition-all duration-300 flex flex-col items-center justify-center border-2 p-4 relative overflow-hidden";
     
     // Door is open and has a result
     if (doorResults[index] !== null) {
@@ -87,14 +87,10 @@ const Door: React.FC<DoorProps> = ({ index }) => {
     );
   };
   
-  // Apply glitch effect in later stages
-  const applyGlitchEffect = stageType === 'late' || stageType === 'final';
-  
   return (
     <div 
       className={cn(
-        "door-container w-full aspect-[1/2] max-w-[150px] mx-2 md:mx-4",
-        applyGlitchEffect ? "hover:animate-glitch" : ""
+        "door-container w-full aspect-[1/2] max-w-[150px] mx-2 md:mx-4"
       )}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
