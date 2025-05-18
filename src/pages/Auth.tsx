@@ -12,7 +12,12 @@ declare global {
   }
 }
 
-const AuthPage = () => {
+// Make sure Auth component has the expected props interface
+interface AuthPageProps {
+  // No specific props needed for this page component
+}
+
+const AuthPage: React.FC<AuthPageProps> = () => {
   const [isWeb3Available, setIsWeb3Available] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -31,7 +36,7 @@ const AuthPage = () => {
     return <Navigate to="/game" replace />;
   }
 
-  return <Auth onAuthSuccess={() => setIsAuthenticated(true)} isWeb3Available={isWeb3Available} />;
+  return <Auth authSuccess={() => setIsAuthenticated(true)} web3Available={isWeb3Available} />;
 };
 
 export default AuthPage;

@@ -117,11 +117,6 @@ const Door: React.FC<DoorProps> = ({ index }) => {
         
         {/* Door handle */}
         <div className="absolute right-2 top-1/2 w-3 h-8 bg-amber-800 rounded-sm"></div>
-        
-        <div className="absolute bottom-2 text-center text-white font-bold text-shadow">
-          Door {index + 1}
-        </div>
-        {getDoorContent()}
       </div>
     </div>
   );
