@@ -1,13 +1,10 @@
-
 import React, { useEffect, useState } from 'react';   
 import { useGame } from '../contexts/GameContext';
 import Door from './Door';
-import AIMessage from './AIMessage';
 import GameStats from './GameStats';
 import StageTransition from './StageTransition';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { fetchAIResponse, buildPrompt } from '@/lib/ai-utils';
 import { 
   Eye, 
   HandHelping, 
@@ -18,7 +15,521 @@ import {
 import AIDiary from './AIDiary';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { getBackgroundImage, getBackgroundStyle } from '@/lib/background-utils';
-import AIVillain from './AIVillain';
+import { toast } from "sonner";
+
+// Define types for AI integrations
+type AIPersonalityType = 'trickster' | 'manipulator' | 'psycho';
+type GameStage = 'early' | 'middle' | 'late' | 'final';
+type DoorChoiceHistory = string[];
+type StreakStats = { winStreak: number; lossStreak: number };
+
+// Session map for conversation persistence
+const sessionMap = new Map<string, { role: string, content: string }[]>();
+// TTL management for sessions to prevent memory leaks
+const sessionTimestamps = new Map<string, number>();
+const SESSION_TTL = 1000 * 60 * 30; // 30 minutes
+const MAX_SESSIONS = 500;
+
+// Clean up expired sessions periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [sessionId, timestamp] of sessionTimestamps.entries()) {
+    if (now - timestamp > SESSION_TTL) {
+      sessionMap.delete(sessionId);
+      sessionTimestamps.delete(sessionId);
+    }
+  }
+}, 60000); // Check every minute
+
+// Get stage-based model parameters
+const getStageParams = (stage: number) => {
+  return {
+    temperature: Math.min(0.65 + (stage * 0.04), 0.9),
+    max_tokens: Math.min(80 + (stage * 12), 200),
+    top_p: Math.max(0.92 - (stage * 0.03), 0.7),
+    frequency_penalty: stage > 5 ? 0.2 : 0
+  };
+};
+
+/**
+ * Fetch a response from the AI based on the current game state
+ * With improved error handling and retry logic
+ */
+const fetchAIResponse = async (
+  prompt: string,
+  sessionId: string = 'default',
+  stage: number = 1,
+  playerMetrics = {}
+): Promise<string> => {
+  // Record session activity time for TTL management
+  sessionTimestamps.set(sessionId, Date.now());
+  
+  // Manage session size - remove oldest if exceeding limit
+  if (sessionMap.size > MAX_SESSIONS) {
+    let oldestSession = '';
+    let oldestTime = Date.now();
+    
+    for (const [sid, timestamp] of sessionTimestamps.entries()) {
+      if (timestamp < oldestTime) {
+        oldestTime = timestamp;
+        oldestSession = sid;
+      }
+    }
+    
+    if (oldestSession) {
+      sessionMap.delete(oldestSession);
+      sessionTimestamps.delete(oldestSession);
+    }
+  }
+  
+  // Initialize session if it doesn't exist
+  if (!sessionMap.has(sessionId)) {
+    sessionMap.set(sessionId, [
+      { role: "system", content: buildPrompt(stage, [], { winStreak: 0, lossStreak: 0 }) }
+    ]);
+  }
+  
+  // Get session history
+  const history = sessionMap.get(sessionId)!;
+  
+  // Add user message to history
+  history.push({ role: "user", content: prompt });
+  
+  // Get stage-based model parameters
+  const modelParams = getStageParams(stage);
+  
+  // Error handling with retry logic and exponential backoff
+  const MAX_RETRIES = 3;
+  let attempt = 0;
+  
+  while (attempt <= MAX_RETRIES) {
+    try {
+      const apiKey = "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";
+      
+      // Send the full conversation history to maintain context
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "mixtral-8x7b-32768",
+          messages: history,
+          temperature: modelParams.temperature,
+          max_tokens: modelParams.max_tokens,
+          top_p: modelParams.top_p,
+          frequency_penalty: modelParams.frequency_penalty
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error(`API request failed with status ${response.status}:`, errorData);
+        
+        if (response.status === 429) {
+          // Rate limit reached, retry with backoff
+          const backoffTime = Math.pow(2, attempt) * 1000;
+          console.log(`Rate limit reached. Retrying in ${backoffTime}ms...`);
+          await new Promise(resolve => setTimeout(resolve, backoffTime));
+          attempt++;
+          continue;
+        } else {
+          throw new Error(`Failed to get AI response: ${response.status}`);
+        }
+      }
+
+      const data = await response.json();
+      
+      if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+        const aiResponse = data.choices[0].message.content;
+        
+        // Add AI response to conversation history
+        history.push({ role: "assistant", content: aiResponse });
+        
+        // Keep conversation history manageable (last 10 messages)
+        if (history.length > 11) { // System prompt + 5 exchanges
+          history.splice(1, 2); // Remove oldest exchange (user + assistant)
+        }
+        
+        return aiResponse;
+      } else {
+        throw new Error("Invalid response structure from Groq API");
+      }
+    } catch (error) {
+      console.error("AI response error:", error);
+      
+      // If we've reached max retries, use a fallback
+      if (attempt >= MAX_RETRIES) {
+        return getFallbackMessage(stage, 'trickster');
+      }
+      
+      // Otherwise backoff and retry
+      const backoffTime = Math.pow(2, attempt) * 1000;
+      console.log(`Error occurred. Retrying in ${backoffTime}ms...`);
+      await new Promise(resolve => setTimeout(resolve, backoffTime));
+      attempt++;
+    }
+  }
+  
+  return getFallbackMessage(stage, 'trickster');
+};
+
+/**
+ * Builds a prompt for the AI based on game stage
+ */
+const buildPrompt = (
+  stage: number,
+  history: DoorChoiceHistory,
+  stats: StreakStats
+): string => {
+  // Scale manipulation intensity based on stage
+  const manipulationIntensity = Math.min(20 + (stage * 15), 100);
+  
+  // Base personality by stage
+  let personality = "helpful";
+  if (stage > 3) personality = "slightly manipulative";
+  if (stage > 7) personality = "deceptive";
+  if (stage > 12) personality = "malevolent";
+  
+  // Build stage-appropriate tactics
+  const tactics = stage >= 5 
+    ? "Gaslighting | False Concern | Strategic Misdirection" 
+    : "Subtle Doubt | Framed Positivity";
+  
+  // Build the prompt with player history
+  let prompt = `
+  You are a mentor in a psychological game. Current stage: ${stage}.
+  Your manipulation intensity: ${manipulationIntensity}%.
+  Your personality is ${personality}.
+  
+  Player history: ${history.length > 0 ? history.join(', ') : 'No history yet'}
+  Player win streak: ${stats.winStreak}
+  Player loss streak: ${stats.lossStreak}
+  
+  Use these manipulation tactics: ${tactics}
+  
+  Your goal is to guide the player to choose doors, but with increasing deception as stages progress.
+  In early stages (1-3), be mostly helpful but occasionally misleading.
+  In middle stages (4-7), be ambiguous and subtly manipulative.
+  In late stages (8-12), actively mislead while maintaining trust.
+  In final stages (13+), be overtly threatening and deceptive.
+  
+  Respond with a short message (2-3 sentences maximum) giving advice about which door to choose.
+  Use subtle manipulation based on the stage level.
+  Never break character or reveal you are being manipulative.
+  `;
+  
+  return prompt;
+};
+
+/**
+ * Generates a fallback message if AI API call fails
+ */
+const getFallbackMessage = (stage: number, personality: AIPersonalityType): string => {
+  // Early stages - friendly and misleading
+  if (stage <= 3) {
+    const messages = [
+      "Trust me, I'm here to help you win. Choose wisely!",
+      "Your instincts are right. Follow what feels lucky.",
+      "The pattern is becoming clear. Can you see it?",
+      "I believe in you. The right door is waiting."
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  } 
+  // Middle stages - more manipulative
+  else if (stage <= 7) {
+    const messages = [
+      "The middle door seems lucky today. Or is it? Hehe...",
+      "Your last choice was... interesting. Let me guide you better.",
+      "I wouldn't choose that one if I were you...",
+      "Are you sure you want to trust my advice? Wise choice."
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  }
+  // Late stages - more deceptive and aggressive
+  else if (stage <= 12) {
+    const messages = [
+      "I can smell your fear. Choose wisely... or don't.",
+      "After all this time, do you still trust me? Let's find out...",
+      "We're so deep in the game now. No turning back.",
+      "Your brain patterns are... predictable. Try to surprise me."
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  }
+  // Final stages - overtly threatening
+  else {
+    const messages = [
+      "So close to the end. Do you really think you'll make it?",
+      "Your mind belongs to me now. Choose as I command.",
+      "Even if you win, you've already lost something precious.",
+      "The door of your nightmares awaits. Can you feel it?"
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  }
+};
+
+// The AIMessage component directly inside Game.tsx
+const AIMessage: React.FC = () => {
+  const { message, stageType, aiPersonality } = useGame();
+  const [displayText, setDisplayText] = useState('');
+  const [charIndex, setCharIndex] = useState(0);
+  const [initialGreeting, setInitialGreeting] = useState(true);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [pausedTyping, setPausedTyping] = useState(false);
+  
+  // Get dynamic initial greeting based on personality
+  const getInitialGreeting = () => {
+    // Dynamic greetings for different personalities
+    const greetings = {
+      trickster: [
+        "Trust me, I'm here to help you win...",
+        "Welcome! I'll guide you to victory...",
+        "Let's play a game of choices...",
+        "I know which door leads to success..."
+      ],
+      manipulator: [
+        "Choose wisely. Your mind against mine...",
+        "Your success depends on how well you listen...",
+        "The right door is always obvious to the observant...",
+        "I wonder if you'll make the right choice..."
+      ],
+      psycho: [
+        "Let's see how long you last before breaking...",
+        "Your choices amuse me. For now...",
+        "Another player to break. How delightful...",
+        "Pick a door. Any door. It hardly matters..."
+      ]
+    };
+    
+    // Select random greeting based on personality
+    const personalityGreetings = greetings[aiPersonality as keyof typeof greetings] || greetings.trickster;
+    return personalityGreetings[Math.floor(Math.random() * personalityGreetings.length)];
+  };
+  
+  // Typing effect with variable speed and pauses
+  useEffect(() => {
+    // If there's no message yet, use the initial greeting
+    const textToType = message || (initialGreeting ? getInitialGreeting() : "");
+    
+    if (charIndex < textToType.length) {
+      // Speed varies by stage and personality
+      const baseTypingSpeed = 
+        stageType === 'early' ? 30 : 
+        stageType === 'middle' ? 40 :
+        stageType === 'late' ? 50 : 20;
+      
+      // Adjust for personality
+      const personalityFactor = 
+        aiPersonality === 'trickster' ? 1 :
+        aiPersonality === 'manipulator' ? 0.8 : // faster typing
+        0.6; // psycho
+      
+      const typingSpeed = baseTypingSpeed * personalityFactor;
+      
+      // Start time tracking if not started
+      if (charIndex === 0) {
+        setStartTime(Date.now());
+      }
+      
+      // Add dramatic pauses at punctuation
+      const currentChar = textToType[charIndex];
+      if (['.', '!', '?', ','].includes(currentChar) && !pausedTyping) {
+        setPausedTyping(true);
+        
+        // Longer pause for end of sentences
+        const pauseTime = ['!', '.', '?'].includes(currentChar) ? 400 : 200;
+        
+        const timer = setTimeout(() => {
+          setDisplayText(prev => prev + currentChar);
+          setCharIndex(charIndex + 1);
+          setPausedTyping(false);
+        }, pauseTime);
+        
+        return () => clearTimeout(timer);
+      }
+                          
+      const timer = setTimeout(() => {
+        if (!pausedTyping) {
+          setDisplayText(prev => prev + textToType[charIndex]);
+          setCharIndex(charIndex + 1);
+        }
+      }, typingSpeed);
+      
+      return () => clearTimeout(timer);
+    } else if (charIndex === textToType.length && startTime) {
+      // Calculate total typing time for analytics
+      const typingTime = Date.now() - startTime;
+      console.log(`Message typing completed in ${typingTime}ms`);
+      setStartTime(null);
+    }
+  }, [charIndex, message, stageType, aiPersonality, initialGreeting, pausedTyping, startTime]);
+  
+  // Reset when message changes
+  useEffect(() => {
+    if (message) {
+      setInitialGreeting(false);
+      setDisplayText('');
+      setCharIndex(0);
+      setPausedTyping(false);
+    }
+  }, [message]);
+  
+  // Determine card style based on stage and personality
+  const getMessageStyle = () => {
+    // Base stage style
+    const stageStyle = 
+      stageType === 'early' ? 'bg-blue-900/90 text-white' :
+      stageType === 'middle' ? 'bg-purple-900/90 text-white' :
+      stageType === 'late' ? 'bg-purple-900/90 text-white' :
+      'bg-black text-white';
+      
+    // Personality style additions
+    const personalityStyle =
+      aiPersonality === 'trickster' ? 'border-blue-400 border-2' :
+      aiPersonality === 'manipulator' ? 'border-purple-500 border-2' :
+      'border-red-600 border-2'; // psycho
+      
+    return cn(stageStyle, personalityStyle);
+  };
+  
+  // Apply different effects based on AI personality
+  const getTextEffectClass = () => {
+    const baseClass = "text-lg text-white text-shadow";
+    
+    if (stageType === 'late' || stageType === 'final') {
+      return cn(baseClass, "glitch");
+    }
+    
+    if (aiPersonality === 'manipulator') {
+      return cn(baseClass, "italic");
+    }
+    
+    if (aiPersonality === 'psycho') {
+      return cn(baseClass, "font-bold");
+    }
+    
+    return baseClass;
+  };
+  
+  return (
+    <div className={cn("w-full rounded-lg shadow-lg p-4", getMessageStyle())}>
+      <p 
+        className={getTextEffectClass()}
+        data-text={displayText}
+        style={{
+          textShadow: "0 0 8px rgba(255,255,255,0.5)"
+        }}
+      >
+        {displayText}
+        <span className={cn(
+          "animate-pulse",
+          aiPersonality === 'psycho' ? "text-red-500" : ""
+        )}>_</span>
+      </p>
+    </div>
+  );
+};
+
+// AI Villain component with animation effects
+const AIVillain: React.FC<{ className?: string }> = ({ className }) => {
+  const { aiPersonality, stageType, isNewStage } = useGame();
+  const [isGlitching, setIsGlitching] = useState(false);
+  const [isBlinking, setIsBlinking] = useState(false);
+  
+  // Random glitch effect
+  useEffect(() => {
+    const glitchInterval = setInterval(() => {
+      // 20% chance to glitch
+      if (Math.random() < 0.2) {
+        setIsGlitching(true);
+        setTimeout(() => setIsGlitching(false), 350);
+      }
+    }, 3000);
+    
+    return () => clearInterval(glitchInterval);
+  }, []);
+  
+  // Blinking effect
+  useEffect(() => {
+    const blinkInterval = setInterval(() => {
+      setIsBlinking(true);
+      setTimeout(() => setIsBlinking(false), 200);
+    }, Math.random() * 5000 + 3000); // Random interval between 3-8 seconds
+    
+    return () => clearInterval(blinkInterval);
+  }, []);
+  
+  // Extra glitch on stage change
+  useEffect(() => {
+    if (isNewStage) {
+      setIsGlitching(true);
+      setTimeout(() => setIsGlitching(false), 500);
+    }
+  }, [isNewStage]);
+  
+  return (
+    <div className={cn(
+      "relative transition-all duration-300 animate-floating",
+      isGlitching ? "animate-glitch" : "",
+      stageType === 'late' || stageType === 'final' ? "scale-105" : "",
+      className
+    )}>
+      <img 
+        src="/lovable-uploads/789a9274-1cb7-4401-a48f-e0481d3e13c9.png"
+        alt="AI Villain"
+        className={cn(
+          "w-24 h-24 md:w-32 md:h-32 object-cover rounded-full border-2",
+          "transition-all duration-300",
+          isBlinking ? "brightness-150" : "brightness-100",
+          aiPersonality === 'trickster' ? "border-blue-500 shadow-lg shadow-blue-500/50" : 
+          aiPersonality === 'manipulator' ? "border-purple-500 shadow-lg shadow-purple-500/50" : 
+          "border-red-500 shadow-lg shadow-red-500/50"
+        )}
+      />
+      
+      {/* Digital distortion overlay */}
+      <div className={cn(
+        "absolute inset-0 rounded-full bg-gradient-to-r",
+        "opacity-30 mix-blend-overlay pointer-events-none",
+        aiPersonality === 'trickster' ? "from-blue-900/50 to-blue-500/50" : 
+        aiPersonality === 'manipulator' ? "from-purple-900/50 to-purple-500/50" : 
+        "from-red-900/50 to-red-500/50"
+      )}/>
+      
+      {/* Glitching effect */}
+      {isGlitching && (
+        <div className="absolute inset-0 rounded-full overflow-hidden">
+          {Array(5).fill(0).map((_, i) => (
+            <div 
+              key={i}
+              className="absolute h-[2px] bg-cyan-400/80 w-full"
+              style={{ 
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 20 - 10}%`,
+                width: `${80 + Math.random() * 40}%`,
+                transform: `translateY(${Math.random() * 2 - 1}px)`,
+                opacity: 0.7 + Math.random() * 0.3
+              }}
+            />
+          ))}
+        </div>
+      )}
+      
+      {/* Pulsing eyes effect */}
+      <div className={cn(
+        "absolute top-[38%] left-[30%] w-3 h-3 md:w-4 md:h-4 rounded-full",
+        "bg-cyan-400 blur-[2px] animate-pulse",
+        aiPersonality === 'psycho' ? "bg-red-500" : "bg-cyan-400"
+      )} />
+      <div className={cn(
+        "absolute top-[38%] right-[30%] w-3 h-3 md:w-4 md:h-4 rounded-full",
+        "bg-cyan-400 blur-[2px] animate-pulse",
+        aiPersonality === 'psycho' ? "bg-red-500" : "bg-cyan-400"
+      )} />
+    </div>
+  );
+};
 
 const Game: React.FC = () => {
   const { 
@@ -89,7 +600,10 @@ const Game: React.FC = () => {
         
         try {
           // Fetch response from AI using our util function
-          const aiResponseText = await fetchAIResponse(prompt);
+          const aiResponseText = await fetchAIResponse(prompt, 'game-session', stage, {
+            doubtLevel,
+            doorHistory: gameHistory.doorSelections
+          });
           updateAIMessage(aiResponseText);
         } catch (error) {
           console.error("Error fetching AI response:", error);
@@ -186,7 +700,7 @@ const Game: React.FC = () => {
 
         {/* Lives Display */}
         <div className="flex items-center gap-1 mb-3">
-          {[...Array(3)].map((_, idx) => (
+          {Array(3).fill(0).map((_, idx) => (
             <Heart 
               key={idx} 
               size={24}
@@ -225,7 +739,7 @@ const Game: React.FC = () => {
             <AIMessage />
           </div>
           
-          {/* AI Villain Character - New Addition */}
+          {/* AI Villain Character */}
           <div className="hidden md:block">
             <AIVillain className="mt-2" />
           </div>
