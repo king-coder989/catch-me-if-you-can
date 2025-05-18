@@ -18,6 +18,7 @@ import {
 import AIDiary from './AIDiary';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { getBackgroundImage, getBackgroundStyle } from '@/lib/background-utils';
+import AIVillain from './AIVillain';
 
 const Game: React.FC = () => {
   const { 
@@ -206,7 +207,7 @@ const Game: React.FC = () => {
            "Mind Reaper"}
         </div>
 
-        {/* AI Message with Avatar */}
+        {/* AI Message with Avatar and Villain */}
         <div className="flex items-start w-full gap-3 mb-4">
           <Avatar className="w-12 h-12 mt-2">
             <AvatarImage src={`/images/ai-${aiPersonality}.png`} alt="AI Personality" />
@@ -222,6 +223,11 @@ const Game: React.FC = () => {
           </Avatar>
           <div className="flex-1">
             <AIMessage />
+          </div>
+          
+          {/* AI Villain Character - New Addition */}
+          <div className="hidden md:block">
+            <AIVillain className="mt-2" />
           </div>
         </div>
 
@@ -262,7 +268,7 @@ const Game: React.FC = () => {
         </div>
 
         {/* Desperation moves - only show when the AI randomly decides to give them */}
-        {availableDesperationMoves.peek || availableDesperationMoves.beg ? (
+        {(availableDesperationMoves.peek || availableDesperationMoves.beg) && (
           <div className="flex justify-center gap-4 mb-4 flex-wrap">
             {availableDesperationMoves.peek && (
               <>
@@ -330,7 +336,7 @@ const Game: React.FC = () => {
               </Button>
             )}
           </div>
-        ) : null}
+        )}
 
         {/* Diary Button (shows after 5 games) */}
         {shouldShowDiaryOption && (
@@ -349,6 +355,11 @@ const Game: React.FC = () => {
             Mind-Engineer's Notes
           </Button>
         )}
+      </div>
+
+      {/* Mobile AI Villain (only visible on small screens) */}
+      <div className="md:hidden absolute bottom-20 right-4 z-10">
+        <AIVillain />
       </div>
 
       {/* Floating "Try Again" button */}

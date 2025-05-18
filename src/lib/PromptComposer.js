@@ -64,3 +64,16 @@ export function buildPrompt(stage, history = [], stats = { winStreak: 0, lossStr
 
   return prompt;
 }
+
+/**
+ * Example usage:
+ *
+ * import { buildPrompt } from './PromptComposer';
+ *
+ * const stage = 5;
+ * const history = ['left', 'right', 'left'];
+ * const stats = { winStreak: 1, lossStreak: 1 };
+ *
+ * const systemPrompt = buildPrompt(stage, history, stats);
+ * // Use systemPrompt in your Groq API call
+ */
